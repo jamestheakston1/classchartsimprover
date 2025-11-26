@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "ClassCharts Improver",
+  "description": "Adds features to ClassCharts.",
+  "version": "5",
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {},
+  "content_scripts": [
+    {
+      "matches": ["https://www.classcharts.com/mobile/student*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": ["https://www.classcharts.com/*"],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/customlogo.png",
+        "assets/threadtutorial.png",
+        "assets/icons/icon-16.png",
+        "assets/icons/icon-48.png",
+        "assets/icons/icon-128.png",
+        "assets/feather/*" 
+      ],
+      "matches": ["https://www.classcharts.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  }
+}
