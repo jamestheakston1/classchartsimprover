@@ -9,7 +9,6 @@ const MESSAGE_MENU_SELECTOR = '.MuiButtonBase-root.MuiListItem-root.desktop-draw
 const PRIMARY_BLUE = '#039BE5';
 const LIGHT_GREY = '#f5f5f5';
 
-// Define the correct ClassCharts Green for positive points/badges
 const POSITIVE_GREEN = '#4CAF50'; 
 
 const NOTES_ICON_FILE = 'edit-3.svg';
@@ -27,8 +26,8 @@ const DEFAULT_MENU_MAPPING = {
     1: 'share-2.svg',
     2: 'clipboard.svg',
     3: 'clock.svg',
-    4: 'calendar.svg',
-    5: 'smile.svg',
+    4: 'smile.svg',
+    5: 'calendar.svg',
     6: 'bar-chart-2.svg',
     7: 'alert-triangle.svg',
     8: 'message-square.svg'
@@ -37,8 +36,8 @@ const DEFAULT_MENU_MAPPING = {
 const DEFAULT_MENU_TEXT_MAPPING = {
     0: 'Overview',
     2: 'Homework',
-    4: 'Timetable',
-    5: 'Wellbeing',
+    4: 'Wellbeing',
+    5: 'Timetable',
     8: 'Messages'
 };
 
@@ -230,35 +229,30 @@ function createMenuItem() {
         return item;
     };
     
-    // 1. Personal Notes
     const notesItem = createItem('Personal Notes', NOTES_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
         showNotesModal();
     }, 'cc-improver-notes-menu-item');
 
-    // 2. Goals Tracker
     const goalsItem = createItem('Goals Tracker', GOALS_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
         showGoalsModal();
     }, 'cc-improver-goals-menu-item');
 
-    // 3. About
     const aboutItem = createItem('About', INFO_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
         showAboutModal();
     }, 'cc-improver-about-menu-item');
 
-    // 4. Upload Custom Profile Photo
     const profilePhotoItem = createItem('Upload Custom Profile Photo', CAMERA_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
         showProfilePhotoModal();
     }, 'cc-improver-custom-photo-menu-item');
     
-    // 5. More Appearance Settings (NEW)
     const settingsItem = createItem('More Appearance Settings', SETTINGS_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -282,19 +276,16 @@ function createMenuItem() {
     
     const finalDividerHtml = `<div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>`;
 
-    // Insertion Logic
     messagesItem.after(notesItem);
     notesItem.after(goalsItem);
     notesItem.insertAdjacentHTML('beforebegin', improverHeaderHtml);
     goalsItem.after(aboutItem);
     
-    // Insert appearance section
     aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
     const firstDividerAfterAbout = aboutItem.nextElementSibling;
     firstDividerAfterAbout.insertAdjacentHTML('afterend', appearanceHeaderHtml);
     const appearanceHeader = firstDividerAfterAbout.nextElementSibling;
     
-    // Insert appearance items
     appearanceHeader.insertAdjacentElement('afterend', profilePhotoItem);
     profilePhotoItem.insertAdjacentElement('afterend', settingsItem);
     settingsItem.insertAdjacentHTML('afterend', finalDividerHtml);
@@ -477,7 +468,6 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
     const backdrop = document.getElementById(`${idPrefix}-modal-backdrop`);
     const closeXBtn = document.getElementById(`${idPrefix}-close-x`);
     
-    // Show modal with transition
     setTimeout(() => {
         backdrop.style.opacity = '1';
     }, 10);
@@ -778,7 +768,6 @@ function showAppearanceSettingsModal() {
             const selectedIcon = e.target.value;
             setPlusOneIcon(selectedIcon);
             updateCustomIcons(); 
-            // Update background color visually in the modal
             document.querySelectorAll('label').forEach(label => {
                 const input = label.querySelector('input');
                 if (input && input.name === 'plusOneIcon') {
@@ -791,7 +780,6 @@ function showAppearanceSettingsModal() {
 
 function applyCustomProfilePhoto() {
     const customPhotoUrl = loadCustomProfilePhoto();
-    // Selector targets the profile photo in the sidebar and other places
     const profileImages = document.querySelectorAll('img.jss32, img[src*="' + PROFILE_IMAGE_DEFAULT_SRC_PATTERN + '"]');
 
     profileImages.forEach(img => {
@@ -810,17 +798,14 @@ function applyCustomProfilePhoto() {
 function updateCustomIcons() {
     const iconToUse = getPlusOneIcon();
     
-    // Select the elements that represent the '+1' achievement badges
     const achievementSelectors = ['.jss63', '.jss66']; 
     const positiveElements = document.querySelectorAll(achievementSelectors.join(', '));
-    // The original style for the badge when it contains the text "+1"
     const originalStyle = 'display: inline-flex; align-items: center; justify-content: center; background-color: #4CAF50; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.75rem; font-weight: bold; padding: 0;';
 
     positiveElements.forEach(element => {
         const isDefaultMode = iconToUse === 'default';
 
         if (isDefaultMode) {
-            // Restore original appearance if needed
             if (element.dataset.ccImproverIcon) {
                 element.innerHTML = '+1';
                 element.style.cssText = element.dataset.ccImproverOriginalCss || originalStyle;
@@ -831,20 +816,18 @@ function updateCustomIcons() {
             const iconUrl = getAssetUrl(iconToUse);
             
             if (!element.dataset.ccImproverIcon) {
-                // Store original CSS for restoration later
                 element.dataset.ccImproverOriginalCss = element.style.cssText;
             }
             
-            element.dataset.ccImproverIcon = 'true';
+            element.dataset.ccImproverIcon = 'true'; 
             
-            // Apply new style for the icon replacement
             element.innerHTML = `<img src="${iconUrl}" alt="Achievement Icon" style="width: 18px; height: 18px; margin-right: 2px; margin-top: 1px;">`;
             element.style.cssText = `
                 display: flex; 
                 align-items: center; 
                 justify-content: center; 
                 padding: 0;
-                background-color: ${POSITIVE_GREEN}; 
+                background-color: ${POSITIVE_GREEN};
                 border-radius: 50%;
                 width: 20px;
                 height: 20px;
@@ -855,7 +838,6 @@ function updateCustomIcons() {
 }
 
 function replacePositiveAchievementIcons() {
-    // This function is now superseded by updateCustomIcons, but we call it to ensure all positive elements are targeted
     updateCustomIcons();
 }
 
@@ -864,7 +846,7 @@ function showWelcomeModal() {
     const welcomeHtml = `
         <div id="cc-welcome-modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 1400; display: flex; justify-content: center; align-items: center;">
             <div style="background-color: white; border-radius: 12px; max-width: 450px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); text-align: center; font-family: Inter, Roboto, sans-serif;">
-                <img src="${logoUrl}" alt="ClassCharts Improver Logo" style="width: 64px; height: 64px; margin-bottom: 15px; border-radius: 10px;">
+                <img src="${logoUrl}" alt="ClassCharts Improver Logo" style="width: 64px; height: 64px; margin-bottom: 15px; border-radius: 10px; object-fit: contain;">
                 <h2 style="font-size: 1.5rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 600;">Welcome to ClassCharts Improver!</h2>
                 <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 25px;">
                     The improved UI is now enabled, featuring new <strong>Feather icons</strong> across the entire navigation menu and a cleaner card design. You can now use <strong>Personal Notes</strong>, the <strong>Goals Tracker</strong> and set a <strong>Custom Profile Photo</strong> from the side menu.
@@ -1015,10 +997,6 @@ function injectAnnouncementsDescription() {
     }
 }
 
-
-/**
- * New function to display the confirmation modal for reloading the page.
- */
 function showRefreshTweaksModal() {
     const bodyHtml = `
         <div style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
@@ -1039,37 +1017,65 @@ function showRefreshTweaksModal() {
     });
 }
 
-
-/**
- * New function to inject the "Refresh Tweaks" button to the left of "My code".
- */
 function injectRefreshTweaksButton() {
-    // Select the target button
     const myCodeButton = document.querySelector('.my-code-button');
     const injectedClass = 'cc-improver-refresh-button';
 
     if (myCodeButton && !document.querySelector('.' + injectedClass)) {
-        // 1. Clone the existing button with all its children (deep clone)
         const refreshButton = myCodeButton.cloneNode(true);
         
-        // 2. Add a unique class for future checks
         refreshButton.classList.add(injectedClass);
         
-        // 3. Update the button label
         const label = refreshButton.querySelector('.MuiButton-label');
         if (label) {
             label.textContent = 'Refresh Tweaks';
         }
         
-        // 4. Set the new click handler
         refreshButton.addEventListener('click', (event) => {
             event.preventDefault(); 
             event.stopPropagation(); 
             showRefreshTweaksModal();
         });
         
-        // 5. Insert the new button before the original 'My code' button
         myCodeButton.insertAdjacentElement('beforebegin', refreshButton);
+    }
+}
+
+function injectLoginAlert() {
+    const targetDiv = document.querySelector('.box');
+    const injectedClass = 'cc-improver-login-alert';
+    
+    if (targetDiv && !targetDiv.nextElementSibling?.classList.contains(injectedClass)) {
+        const alertHtml = `
+            <div class="${injectedClass}" style="
+                background-color: #e3f2fd; 
+                border-left: 4px solid ${PRIMARY_BLUE}; 
+                color: #01579B; 
+                padding: 16px; 
+                margin-top: 20px; 
+                border-radius: 8px; 
+                display: flex; 
+                align-items: flex-start; 
+                font-family: inherit;
+            ">
+                <img src="${getAssetUrl(INFO_ICON_FILE)}" alt="Info Icon" style="
+                    width: 24px; 
+                    height: 24px; 
+                    min-width: 24px;
+                    margin-right: 15px; 
+                    filter: invert(33%) sepia(91%) saturate(2224%) hue-rotate(188deg) brightness(97%) contrast(92%);
+                ">
+                <div>
+                    <h4 style="font-weight: 700; font-size: 1rem; margin: 0 0 5px 0; color: #01579B;">
+                        ClassCharts Improver is active
+                    </h4>
+                    <p style="font-size: 0.9rem; margin: 0; line-height: 1.4;">
+                        This extension adds features like Personal Notes, Goals Tracker, and custom styling to your account.
+                    </p>
+                </div>
+            </div>
+        `;
+        targetDiv.insertAdjacentHTML('afterend', alertHtml);
     }
 }
 
@@ -1086,7 +1092,6 @@ function initObserver() {
     const interval = setInterval(() => {
         const menuInjected = document.querySelector('.cc-improver-header');
         
-        // Always run these to ensure icons are set and persistent
         updateDefaultIcons();
         updateCustomIcons();
         
@@ -1098,13 +1103,12 @@ function initObserver() {
             }
         }
 
-        // Run injections consistently to catch late-loading pages
         injectReportConcernWarning();
         injectContactLink();
         injectCodeWarning();
         injectMessagesPlaceholderContent();
-        injectAnnouncementsDescription(); // Re-added this for completeness
-        injectRefreshTweaksButton(); // <-- New feature injection
+        injectAnnouncementsDescription(); 
+        injectRefreshTweaksButton(); 
 
         if (attempts >= maxAttempts) {
             clearInterval(interval);
@@ -1113,4 +1117,5 @@ function initObserver() {
     }, 500);
 }
 
+injectLoginAlert();
 initObserver();
