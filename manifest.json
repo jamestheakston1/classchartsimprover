@@ -9,7 +9,11 @@
   "action": {},
   "content_scripts": [
     {
-      "matches": ["https://www.classcharts.com/mobile/student*"],
+      "matches": [
+        "https://www.classcharts.com/mobile/student*",
+        "https://www.classcharts.com/student/login",
+        "https://www.classcharts.com/student/*" 
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
