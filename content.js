@@ -1,7 +1,11 @@
 const NOTES_STORAGE_KEY = 'classcharts_personal_notes';
 const GOALS_STORAGE_KEY = 'classcharts_personal_goals';
 const PROFILE_PHOTO_STORAGE_KEY = 'classcharts_custom_profile_photo';
-const WELCOME_SHOWN_KEY = 'classcharts_improver_welcome_shown_v4';
+
+const CURRENT_VERSION_KEY = 'classcharts_improver_version_v5_2'; 
+const WELCOME_SHOWN_KEY = `classcharts_improver_welcome_shown_${CURRENT_VERSION_KEY}`;
+const REVIEW_SHOWN_KEY = `classcharts_improver_review_shown_${CURRENT_VERSION_KEY}`;
+
 const IMPROVED_UI_KEY = 'classcharts_improver_improved_ui_enabled';
 const PLUS_ONE_ICON_KEY = 'classcharts_improver_plus_one_icon';
 
@@ -648,7 +652,7 @@ function showAboutModal() {
     const bodyHtml = `
         <p style="margin-bottom: 20px; font-size: 1rem; color: #444;">This project enhances the ClassCharts student portal by adding new, helpful features that are stored securely in your browser's local memory.</p>
         <ul style="list-style-type: disc; padding-left: 20px; margin-bottom: 20px; color: #444;">
-            <li style="margin-bottom: 8px;"><strong>Version:</strong> 4.0 (Enhanced Styling Release)</li>
+            <li style="margin-bottom: 8px;"><strong>Version:</strong> 4.1 (Current Version Key: ${CURRENT_VERSION_KEY})</li>
             <li style="margin-bottom: 8px;"><strong>Feature 1:</strong> Personal Notes (A private notepad)</li>
             <li><strong>Feature 2:</strong> Goals Tracker (Define and track tasks/goals)</li>
             <li><strong>Feature 3:</strong> Custom Profile Photo (Visible only to you)</li>
@@ -841,17 +845,74 @@ function replacePositiveAchievementIcons() {
     updateCustomIcons();
 }
 
-function showWelcomeModal() {
+function showWelcomeModal(callback) {
     const logoUrl = getAssetUrl('customlogo.png');
     const welcomeHtml = `
-        <div id="cc-welcome-modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 1400; display: flex; justify-content: center; align-items: center;">
-            <div style="background-color: white; border-radius: 12px; max-width: 450px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); text-align: center; font-family: Inter, Roboto, sans-serif;">
-                <img src="${logoUrl}" alt="ClassCharts Improver Logo" style="width: 64px; height: 64px; margin-bottom: 15px; border-radius: 10px; object-fit: contain;">
-                <h2 style="font-size: 1.5rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 600;">Welcome to ClassCharts Improver!</h2>
-                <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 25px;">
-                    The improved UI is now enabled, featuring new <strong>Feather icons</strong> across the entire navigation menu and a cleaner card design. You can now use <strong>Personal Notes</strong>, the <strong>Goals Tracker</strong> and set a <strong>Custom Profile Photo</strong> from the side menu.
+        <style>
+            .cc-welcome-card {
+                background: linear-gradient(135deg, #E3F2FD 0%, #FFFFFF 100%); 
+                border-radius: 16px; 
+                max-width: 480px; 
+                padding: 40px; 
+                box-shadow: 0 15px 40px rgba(3,155,229,0.3); 
+                text-align: center; 
+                font-family: Inter, Roboto, sans-serif;
+                transform: scale(0.95);
+                opacity: 0;
+                transition: all 0.3s ease-out;
+            }
+            .cc-welcome-backdrop {
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100%; 
+                background-color: rgba(0, 0, 0, 0.7); 
+                z-index: 1400; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center;
+            }
+            .cc-welcome-card.visible {
+                transform: scale(1);
+                opacity: 1;
+            }
+            .cc-welcome-logo {
+                width: 100px; 
+                height: 100px; 
+                margin-bottom: 20px; 
+                border-radius: 0; 
+                object-fit: contain; 
+                border: 4px solid ${PRIMARY_BLUE};
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            }
+            .cc-welcome-dismiss-btn {
+                background-color: ${PRIMARY_BLUE}; 
+                color: white; 
+                border: none; 
+                padding: 12px 25px; 
+                border-radius: 8px; 
+                cursor: pointer; 
+                font-weight: 600; 
+                text-transform: uppercase; 
+                transition: background-color 0.2s, transform 0.1s;
+                letter-spacing: 0.5px;
+            }
+            .cc-welcome-dismiss-btn:hover {
+                background-color: #0277BD;
+            }
+            .cc-welcome-dismiss-btn:active {
+                transform: scale(0.98);
+            }
+        </style>
+        <div id="cc-welcome-modal-backdrop" class="cc-welcome-backdrop">
+            <div id="cc-welcome-modal-content" class="cc-welcome-card">
+                <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-welcome-logo">
+                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Update: New Features Arrived!</h2>
+                <p style="font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 30px;">
+                    We've rolled out a new update, including the ability to add **Personal Notes**, a **Goals Tracker**, and set a **Custom Profile Photo** right from the side menu. Check out the new, improved UI!
                 </p>
-                <button id="cc-welcome-dismiss-btn" style="background-color: ${PRIMARY_BLUE}; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; text-transform: uppercase; transition: background-color 0.2s;">
+                <button id="cc-welcome-dismiss-btn" class="cc-welcome-dismiss-btn">
                     Got it!
                 </button>
             </div>
@@ -860,11 +921,168 @@ function showWelcomeModal() {
     document.body.insertAdjacentHTML('beforeend', welcomeHtml);
     const dismissBtn = document.getElementById('cc-welcome-dismiss-btn');
     const backdrop = document.getElementById('cc-welcome-modal-backdrop');
+    const content = document.getElementById('cc-welcome-modal-content');
+
+    
+    setTimeout(() => {
+        content.classList.add('visible');
+    }, 10);
+
     const dismiss = () => {
+        
         localStorage.setItem(WELCOME_SHOWN_KEY, 'true');
-        backdrop.remove();
+        content.classList.remove('visible');
+        backdrop.style.backgroundColor = 'transparent';
+        setTimeout(() => {
+            backdrop.remove();
+            if (callback) {
+                callback();
+            }
+        }, 300);
     };
     dismissBtn.addEventListener('click', dismiss);
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) {
+            dismiss();
+        }
+    });
+}
+
+function showReviewModal() {
+    const logoUrl = getAssetUrl('customlogo.png');
+    const reviewLink = 'https://chromewebstore.google.com/detail/classcharts-improver/kalmdpfngeebamgaeegkieojhbkbghoe';
+
+    const reviewHtml = `
+        <style>
+            .cc-review-card {
+                background-color: white;
+                border-radius: 16px; 
+                max-width: 480px; 
+                padding: 40px; 
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); 
+                text-align: center; 
+                font-family: Inter, Roboto, sans-serif;
+                border-top: 5px solid ${PRIMARY_BLUE};
+                transform: scale(0.95);
+                opacity: 0;
+                transition: all 0.3s ease-out;
+            }
+            .cc-review-backdrop {
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100%; 
+                background-color: rgba(0, 0, 0, 0.7); 
+                z-index: 1400; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center;
+            }
+            .cc-review-card.visible {
+                transform: scale(1);
+                opacity: 1;
+            }
+            .cc-review-logo {
+                width: 100px; 
+                height: 100px; 
+                margin-bottom: 20px; 
+                border-radius: 16px; 
+                object-fit: contain; 
+            }
+            .cc-review-btn-primary {
+                background-color: ${POSITIVE_GREEN}; 
+                color: white; 
+                border: none; 
+                padding: 10px 20px; 
+                border-radius: 8px; 
+                cursor: pointer; 
+                font-weight: 600; 
+                text-transform: uppercase; 
+                transition: background-color 0.2s, transform 0.1s;
+                letter-spacing: 0.5px;
+            }
+            .cc-review-btn-primary:hover {
+                background-color: #388E3C;
+            }
+            .cc-review-btn-secondary {
+                background-color: #e0e0e0; 
+                color: #333; 
+                border: none; 
+                padding: 10px 15px; 
+                border-radius: 8px; 
+                cursor: pointer; 
+                font-weight: 500; 
+                transition: background-color 0.2s;
+            }
+            .cc-review-btn-secondary:hover {
+                background-color: #bdbdbd;
+            }
+        </style>
+        <div id="cc-review-modal-backdrop" class="cc-review-backdrop">
+            <div id="cc-review-modal-content" class="cc-review-card">
+                <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-review-logo">
+                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Enjoying the Improver?</h2>
+                <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 30px;">
+                    A simple rating or review helps other students discover these useful features. Would you mind taking 30 seconds to support the extension?
+                </p>
+                <div style="display: flex; justify-content: center; gap: 15px;">
+                    <button id="cc-review-later-btn" class="cc-review-btn-secondary">
+                        Maybe Later
+                    </button>
+                    <a href="${reviewLink}" target="_blank" id="cc-review-link-btn" style="text-decoration: none;">
+                        <button id="cc-review-dismiss-btn" class="cc-review-btn-primary">
+                            Leave a Review
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', reviewHtml);
+    const backdrop = document.getElementById('cc-review-modal-backdrop');
+    const content = document.getElementById('cc-review-modal-content');
+    
+    
+    setTimeout(() => {
+        content.classList.add('visible');
+    }, 10);
+
+    const dismiss = () => {
+        localStorage.setItem(REVIEW_SHOWN_KEY, 'true');
+        content.classList.remove('visible');
+        backdrop.style.backgroundColor = 'transparent';
+        setTimeout(() => {
+            backdrop.remove();
+        }, 300);
+    };
+    
+    document.getElementById('cc-review-later-btn').addEventListener('click', dismiss);
+    
+    
+    document.getElementById('cc-review-dismiss-btn').addEventListener('click', dismiss);
+    
+    backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop) {
+            dismiss();
+        }
+    });
+}
+
+function checkAndShowModals() {
+    
+    if (localStorage.getItem(WELCOME_SHOWN_KEY) !== 'true') {
+        showWelcomeModal(() => {
+            
+            if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
+                showReviewModal();
+            }
+        });
+    } 
+    
+    else if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
+        showReviewModal();
+    }
 }
 
 function injectReportConcernWarning() {
@@ -997,6 +1215,44 @@ function injectAnnouncementsDescription() {
     }
 }
 
+function injectLoginAlert() {
+    const targetDiv = document.querySelector('.box');
+    const injectedClass = 'cc-improver-login-alert';
+    
+    if (targetDiv && !targetDiv.nextElementSibling?.classList.contains(injectedClass)) {
+        const alertHtml = `
+            <div class="${injectedClass}" style="
+                background-color: #e3f2fd; 
+                border-left: 4px solid ${PRIMARY_BLUE}; 
+                color: #01579B; 
+                padding: 16px; 
+                margin-top: 20px; 
+                border-radius: 8px; 
+                display: flex; 
+                align-items: flex-start; 
+                font-family: inherit;
+            ">
+                <img src="${getAssetUrl(INFO_ICON_FILE)}" alt="Info Icon" style="
+                    width: 24px; 
+                    height: 24px; 
+                    min-width: 24px;
+                    margin-right: 15px; 
+                    filter: invert(33%) sepia(91%) saturate(2224%) hue-rotate(188deg) brightness(97%) contrast(92%);
+                ">
+                <div>
+                    <h4 style="font-weight: 700; font-size: 1rem; margin: 0 0 5px 0; color: #01579B;">
+                        ClassCharts Improver is active
+                    </h4>
+                    <p style="font-size: 0.9rem; margin: 0; line-height: 1.4;">
+                        This extension adds features like Personal Notes, Goals Tracker, and custom styling to your account.
+                    </p>
+                </div>
+            </div>
+        `;
+        targetDiv.insertAdjacentHTML('afterend', alertHtml);
+    }
+}
+
 function showRefreshTweaksModal() {
     const bodyHtml = `
         <div style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
@@ -1041,44 +1297,6 @@ function injectRefreshTweaksButton() {
     }
 }
 
-function injectLoginAlert() {
-    const targetDiv = document.querySelector('.box');
-    const injectedClass = 'cc-improver-login-alert';
-    
-    if (targetDiv && !targetDiv.nextElementSibling?.classList.contains(injectedClass)) {
-        const alertHtml = `
-            <div class="${injectedClass}" style="
-                background-color: #e3f2fd; 
-                border-left: 4px solid ${PRIMARY_BLUE}; 
-                color: #01579B; 
-                padding: 16px; 
-                margin-top: 20px; 
-                border-radius: 8px; 
-                display: flex; 
-                align-items: flex-start; 
-                font-family: inherit;
-            ">
-                <img src="${getAssetUrl(INFO_ICON_FILE)}" alt="Info Icon" style="
-                    width: 24px; 
-                    height: 24px; 
-                    min-width: 24px;
-                    margin-right: 15px; 
-                    filter: invert(33%) sepia(91%) saturate(2224%) hue-rotate(188deg) brightness(97%) contrast(92%);
-                ">
-                <div>
-                    <h4 style="font-weight: 700; font-size: 1rem; margin: 0 0 5px 0; color: #01579B;">
-                        ClassCharts Improver is active
-                    </h4>
-                    <p style="font-size: 0.9rem; margin: 0; line-height: 1.4;">
-                        This extension adds features like Personal Notes, Goals Tracker, and custom styling to your account.
-                    </p>
-                </div>
-            </div>
-        `;
-        targetDiv.insertAdjacentHTML('afterend', alertHtml);
-    }
-}
-
 
 function initObserver() {
     let attempts = 0;
@@ -1097,9 +1315,8 @@ function initObserver() {
         
         if (!menuInjected) {
             if (createMenuItem()) {
-                if (localStorage.getItem(WELCOME_SHOWN_KEY) !== 'true') {
-                    showWelcomeModal();
-                }
+                
+                checkAndShowModals();
             }
         }
 
