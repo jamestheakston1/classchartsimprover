@@ -1,26 +1,29 @@
 const NOTES_STORAGE_KEY = 'classcharts_personal_notes';
 const GOALS_STORAGE_KEY = 'classcharts_personal_goals';
 const PROFILE_PHOTO_STORAGE_KEY = 'classcharts_custom_profile_photo';
+const ACCENT_COLOR_KEY = 'classcharts_improver_accent_color';
+const DEFAULT_ACCENT_COLOR = '#039BE5'; // ClassCharts original blue
 
-const CURRENT_VERSION_KEY = 'classcharts_improver_version_v5_2'; 
+const CURRENT_VERSION_KEY = 'classcharts_improver_version_v5_2';
 const WELCOME_SHOWN_KEY = `classcharts_improver_welcome_shown_${CURRENT_VERSION_KEY}`;
 const REVIEW_SHOWN_KEY = `classcharts_improver_review_shown_${CURRENT_VERSION_KEY}`;
+const SESSION_LOADER_SHOWN_KEY = 'cc_improver_loader_shown'; // New constant for loading modal
 
 const IMPROVED_UI_KEY = 'classcharts_improver_improved_ui_enabled';
 const PLUS_ONE_ICON_KEY = 'classcharts_improver_plus_one_icon';
 
 const MESSAGE_MENU_SELECTOR = '.MuiButtonBase-root.MuiListItem-root.desktop-drawer-pupil-menu-item:last-child';
-const PRIMARY_BLUE = '#039BE5';
 const LIGHT_GREY = '#f5f5f5';
 
-const POSITIVE_GREEN = '#4CAF50'; 
+const POSITIVE_GREEN = '#4CAF50';
+const OVERDUE_COLOR = '#E53935';
 
 const NOTES_ICON_FILE = 'edit-3.svg';
 const GOALS_ICON_FILE = 'target.svg';
 const INFO_ICON_FILE = 'info.svg';
 const CAMERA_ICON_FILE = 'camera.svg';
 const SETTINGS_ICON_FILE = 'settings.svg';
-const POSITIVE_ICON_FILE = 'smile.svg'; 
+const POSITIVE_ICON_FILE = 'smile.svg';
 
 const PROFILE_IMAGE_DEFAULT_SRC_PATTERN = 'faces/';
 const CLASSCHARTS_DEFAULT_PHOTO_URL = 'https://195ec04504ea0272771e-7c2c6dacbab7a2b2d574b53c70c1fe31.ssl.cf3.rackcdn.com/29.67.5-52f0ea22/img/faces/default.png';
@@ -44,6 +47,15 @@ const DEFAULT_MENU_TEXT_MAPPING = {
     5: 'Timetable',
     8: 'Messages'
 };
+
+function getAccentColor() {
+    return localStorage.getItem(ACCENT_COLOR_KEY) || DEFAULT_ACCENT_COLOR;
+}
+
+function setAccentColor(color) {
+    localStorage.setItem(ACCENT_COLOR_KEY, color);
+    applyAccentColor(color);
+}
 
 function loadNotes() {
     return localStorage.getItem(NOTES_STORAGE_KEY) || '';
@@ -125,6 +137,108 @@ function replaceClassChartsLogo() {
     }
 }
 
+function applyAccentColor(color) {
+    let style = document.getElementById('cc-improver-accent-style');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'cc-improver-accent-style';
+        document.head.appendChild(style);
+    }
+
+    // A simple function to generate a slightly darker color for hover effects
+    function darkenColor(hex, percent) {
+        let R = parseInt(hex.substring(1,3),16);
+        let G = parseInt(hex.substring(3,5),16);
+        let B = parseInt(hex.substring(5,7),16);
+
+        R = parseInt(R * (100 + percent) / 100);
+        G = parseInt(G * (100 + percent) / 100);
+        B = parseInt(B * (100 + percent) / 100);
+
+        R = (R<255)?R:255;  
+        G = (G<255)?G:255;  
+        B = (B<255)?B:255;  
+
+        let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
+        let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
+        let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+
+        return "#"+RR+GG+BB;
+    }
+    const darkerColor = darkenColor(color, -10);
+
+    style.textContent = `
+        :root {
+            --cc-improver-accent: ${color} !important;
+            --cc-improver-accent-darker: ${darkerColor} !important;
+        }
+
+        /* ClassCharts Mui Overrides */
+        .MuiAppBar-colorPrimary, 
+        .MuiChip-colorPrimary, 
+        .MuiButton-containedPrimary,
+        .MuiButton-textPrimary,
+        .MuiTabs-indicator,
+        .MuiSwitch-colorPrimary.Mui-checked,
+        .MuiRadio-colorPrimary.Mui-checked,
+        .MuiCheckbox-colorPrimary.Mui-checked {
+            background-color: var(--cc-improver-accent) !important;
+            color: white !important;
+        }
+        .MuiTypography-colorTextPrimary,
+        .MuiSvgIcon-colorSecondary,
+        .MuiSvgIcon-colorPrimary,
+        .MuiIcon-colorPrimary {
+             color: var(--cc-improver-accent) !important;
+        }
+
+        /* Custom Modal Overrides (using injected styles) */
+        .cc-notes-save-btn,
+        .cc-goals-save-btn,
+        .cc-settings-save-btn,
+        .cc-welcome-dismiss-btn {
+            background-color: var(--cc-improver-accent) !important;
+            box-shadow: 0 4px 8px ${color}4d !important; /* Adds a shadow based on the accent color */
+        }
+        .cc-notes-save-btn:hover,
+        .cc-goals-save-btn:hover,
+        .cc-settings-save-btn:hover,
+        .cc-welcome-dismiss-btn:hover {
+            background-color: var(--cc-improver-accent-darker) !important;
+        }
+        .cc-goal-checkbox:checked,
+        .cc-switch input:checked + .cc-slider {
+            background-color: var(--cc-improver-accent) !important;
+            border-color: var(--cc-improver-accent) !important;
+        }
+        .cc-goal-checkbox {
+            border-color: var(--cc-improver-accent) !important;
+        }
+        .cc-notes-textarea:focus, .cc-add-goal-input:focus {
+            border-color: var(--cc-improver-accent) !important;
+            box-shadow: 0 0 0 3px ${color}33 !important;
+        }
+        
+        /* Modal & UI Elements */
+        .cc-profile-photo-preview { border-color: var(--cc-improver-accent) !important; }
+        .cc-review-card { border-top-color: var(--cc-improver-accent) !important; }
+        .cc-welcome-logo { border-color: var(--cc-improver-accent) !important; }
+        .cc-improver-login-alert { border-left-color: var(--cc-improver-accent) !important; }
+        #cc-loading-progress { background-color: var(--cc-improver-accent) !important; }
+
+        /* Links */
+        .cc-improver-contact-link a { color: var(--cc-improver-accent) !important; }
+    `;
+    
+    // Force update of custom modal headers/borders if they are open
+    document.querySelectorAll('.cc-notes-modal-card, .cc-goals-modal-card, .cc-settings-modal-card').forEach(card => {
+        if (card.style.borderTop) {
+             card.style.borderTopColor = color;
+        }
+    });
+
+}
+
 function applyImprovedUI(enabled) {
     const body = document.body;
     if (enabled) {
@@ -158,7 +272,7 @@ function replaceIcon(element, iconFile) {
     const injectedIconSelector = '.cc-improver-icon-img';
     let injectedIcon = iconContainer.querySelector(injectedIconSelector);
     const originalIcon = iconContainer.querySelector(':scope > *:not(' + injectedIconSelector + ')');
-    
+
     if (getImprovedUIStatus()) {
         if (originalIcon) {
              if (originalIcon.style.display !== 'none') {
@@ -211,7 +325,7 @@ function createMenuItem() {
     if (!messagesItem) {
         return false;
     }
-    
+
     const createItem = (text, iconFile, clickHandler, id) => {
         const item = messagesItem.cloneNode(true);
         item.id = id;
@@ -232,7 +346,7 @@ function createMenuItem() {
         }
         return item;
     };
-    
+
     const notesItem = createItem('Personal Notes', NOTES_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -256,7 +370,7 @@ function createMenuItem() {
         event.stopPropagation();
         showProfilePhotoModal();
     }, 'cc-improver-custom-photo-menu-item');
-    
+
     const settingsItem = createItem('More Appearance Settings', SETTINGS_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -277,19 +391,19 @@ function createMenuItem() {
         </div>
         <div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>
     `;
-    
+
     const finalDividerHtml = `<div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>`;
 
     messagesItem.after(notesItem);
     notesItem.after(goalsItem);
     notesItem.insertAdjacentHTML('beforebegin', improverHeaderHtml);
     goalsItem.after(aboutItem);
-    
+
     aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
     const firstDividerAfterAbout = aboutItem.nextElementSibling;
     firstDividerAfterAbout.insertAdjacentHTML('afterend', appearanceHeaderHtml);
     const appearanceHeader = firstDividerAfterAbout.nextElementSibling;
-    
+
     appearanceHeader.insertAdjacentElement('afterend', profilePhotoItem);
     profilePhotoItem.insertAdjacentElement('afterend', settingsItem);
     settingsItem.insertAdjacentHTML('afterend', finalDividerHtml);
@@ -350,12 +464,12 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 transform: scale(0.98);
             }
             .${idPrefix}-save-btn {
-                background-color: ${PRIMARY_BLUE};
+                background-color: var(--cc-improver-accent);
                 color: white;
-                box-shadow: 0 4px 8px rgba(3,155,229,0.4);
+                box-shadow: 0 4px 8px var(--cc-improver-accent);
             }
             .${idPrefix}-save-btn:hover {
-                background-color: #0277BD;
+                background-color: var(--cc-improver-accent-darker);
             }
             .${idPrefix}-cancel-btn {
                 background-color: #e0e0e0;
@@ -379,8 +493,8 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 white-space: pre-wrap;
             }
             .cc-notes-textarea:focus, .cc-add-goal-input:focus {
-                border-color: ${PRIMARY_BLUE};
-                box-shadow: 0 0 0 3px rgba(3,155,229,0.2);
+                border-color: var(--cc-improver-accent);
+                box-shadow: 0 0 0 3px var(--cc-improver-accent)33;
             }
             .cc-notes-display-content {
                 min-height: 150px;
@@ -414,7 +528,7 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 -webkit-appearance: none;
                 width: 20px;
                 height: 20px;
-                border: 2px solid ${PRIMARY_BLUE};
+                border: 2px solid var(--cc-improver-accent);
                 border-radius: 4px;
                 margin-right: 15px;
                 cursor: pointer;
@@ -423,8 +537,8 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 min-width: 20px;
             }
             .cc-goal-checkbox:checked {
-                background-color: ${PRIMARY_BLUE};
-                border-color: ${PRIMARY_BLUE};
+                background-color: var(--cc-improver-accent);
+                border-color: var(--cc-improver-accent);
             }
             .cc-goal-checkbox:checked::after {
                 content: '';
@@ -453,6 +567,64 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 padding: 10px 16px;
                 margin-bottom: 0;
             }
+            .cc-switch {
+              position: relative;
+              display: inline-block;
+              width: 48px;
+              height: 28px;
+            }
+
+            .cc-switch input { 
+              opacity: 0;
+              width: 0;
+              height: 0;
+            }
+
+            .cc-slider {
+              position: absolute;
+              cursor: pointer;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background-color: #ccc;
+              -webkit-transition: .4s;
+              transition: .4s;
+            }
+
+            .cc-slider:before {
+              position: absolute;
+              content: "";
+              height: 20px;
+              width: 20px;
+              left: 4px;
+              bottom: 4px;
+              background-color: white;
+              -webkit-transition: .4s;
+              transition: .4s;
+            }
+
+            input:checked + .cc-slider {
+              background-color: var(--cc-improver-accent);
+            }
+
+            input:focus + .cc-slider {
+              box-shadow: 0 0 1px var(--cc-improver-accent);
+            }
+
+            input:checked + .cc-slider:before {
+              -webkit-transform: translateX(20px);
+              -ms-transform: translateX(20px);
+              transform: translateX(20px);
+            }
+
+            .cc-slider.round {
+              border-radius: 28px;
+            }
+
+            .cc-slider.round:before {
+              border-radius: 50%;
+            }
         </style>
         <div id="${idPrefix}-modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1300; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s;">
             <div id="${idPrefix}-modal-content" class="${idPrefix}-modal-card">
@@ -471,18 +643,18 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     const backdrop = document.getElementById(`${idPrefix}-modal-backdrop`);
     const closeXBtn = document.getElementById(`${idPrefix}-close-x`);
-    
+
     setTimeout(() => {
         backdrop.style.opacity = '1';
     }, 10);
-    
+
     const closeModal = () => {
         backdrop.style.opacity = '0';
         setTimeout(() => {
             backdrop.remove();
         }, 300);
     };
-    
+
     closeXBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', (event) => {
         if (event.target === backdrop) {
@@ -513,7 +685,7 @@ function showNotesModal() {
     const cancelEditBtn = document.getElementById('cc-notes-cancel-edit-btn');
     const initialNotes = loadNotes();
     let currentNotes = initialNotes;
-    
+
     const setMode = (editing) => {
         if (editing) {
             displayDiv.style.display = 'none';
@@ -532,16 +704,16 @@ function showNotesModal() {
             saveBtn.style.display = 'none';
         }
     };
-    
+
     const updateContent = (content) => {
         displayDiv.textContent = content.length > 0 ? content : 'No notes saved yet. Click Edit Notes to start.';
         textarea.value = content;
         currentNotes = content;
     };
-    
+
     updateContent(initialNotes);
     setMode(false);
-    
+
     closeModalBtn.addEventListener('click', closeModal);
     editBtn.addEventListener('click', () => {
         setMode(true);
@@ -577,7 +749,7 @@ function showGoalsModal() {
     const addBtn = document.getElementById('cc-add-goal-btn');
     const clearBtn = document.getElementById('cc-goals-clear-btn');
     const closeBtn = document.getElementById('cc-goals-close-btn');
-    
+
     let currentGoals = loadGoals();
 
     const renderGoals = () => {
@@ -587,7 +759,7 @@ function showGoalsModal() {
             goalsList.innerHTML = '<li style="padding: 10px 16px; color: rgba(0,0,0,0.5);">No goals set yet. Use the input below to add your first goal!</li>';
             return;
         }
-        
+
         currentGoals.forEach(goal => {
             const listItem = document.createElement('li');
             listItem.className = `cc-goal-item ${goal.completed ? 'completed' : ''}`;
@@ -632,9 +804,8 @@ function showGoalsModal() {
     };
 
     const clearCompleted = () => {
-        currentGoals = loadGoals();
-        const incompleteGoals = currentGoals.filter(g => !g.completed);
-        saveGoals(incompleteGoals);
+        currentGoals = loadGoals().filter(goal => !goal.completed);
+        saveGoals(currentGoals);
         renderGoals();
     };
 
@@ -644,7 +815,7 @@ function showGoalsModal() {
     });
     clearBtn.addEventListener('click', clearCompleted);
     closeBtn.addEventListener('click', closeModal);
-    
+
     renderGoals();
 }
 
@@ -676,17 +847,19 @@ function showAboutModal() {
 
 function showProfilePhotoModal() {
     const currentPhoto = loadCustomProfilePhoto() || CLASSCHARTS_DEFAULT_PHOTO_URL;
-    
+    const accentColor = getAccentColor();
+
     const bodyHtml = `
         <div style="font-size: 1rem; color: #333; margin-bottom: 25px; background-color: #f7f7f7; padding: 15px; border-radius: 8px;">
-            <p style="font-weight: 600; color: ${PRIMARY_BLUE}; margin-bottom: 10px;">Your Privacy, Our Priority</p>
+            <p style="font-weight: 600; color: ${accentColor}; margin-bottom: 10px;">Your Privacy, Our Priority</p>
             <p>This custom profile photo is <strong>only visible to you</strong> and is stored entirely within your browser's local memory. It will not be shared with your school, teachers, or other students. You can change or remove it anytime.</p>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            <img id="cc-current-photo-preview" src="${currentPhoto}" 
-                 alt="Current Profile Photo" 
-                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid ${PRIMARY_BLUE};">
-            
+            <img id="cc-current-photo-preview" src="${currentPhoto}"
+                 alt="Current Profile Photo"
+                 class="cc-profile-photo-preview"
+                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid ${accentColor};">
+
             <input type="file" id="cc-photo-upload-input" accept="image/*" style="display: none;">
             <button id="cc-photo-upload-btn" class="cc-notes-button cc-notes-save-btn" style="min-width: 180px;">
                 Upload New Photo
@@ -708,7 +881,7 @@ function showProfilePhotoModal() {
 
     uploadBtn.addEventListener('click', () => uploadInput.click());
     closeBtn.addEventListener('click', closeModal);
-    
+
     removeBtn.addEventListener('click', () => {
         localStorage.removeItem(PROFILE_PHOTO_STORAGE_KEY);
         applyCustomProfilePhoto();
@@ -732,10 +905,38 @@ function showProfilePhotoModal() {
 
 function showAppearanceSettingsModal() {
     const currentIcon = getPlusOneIcon();
+    const currentAccentColor = getAccentColor();
+
+    const PRESET_COLORS = {
+        'Blue (Default)': DEFAULT_ACCENT_COLOR,
+        'Indigo': '#3F51B5',
+        'Green': '#4CAF50',
+        'Orange': '#FF9800',
+        'Red': '#E53935',
+        'Purple': '#9C27B0',
+        'Teal': '#009688',
+        'Pink': '#E91E63',
+        'Yellow': '#FFEB3B',
+    };
+
+    const colorOptionsHtml = Object.entries(PRESET_COLORS).map(([name, color]) => `
+        <label style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; background-color: ${currentAccentColor.toLowerCase() === color.toLowerCase() ? LIGHT_GREY : 'white'};">
+            <input type="radio" name="accentColor" value="${color}" style="margin-right: 15px; transform: scale(1.2);" ${currentAccentColor.toLowerCase() === color.toLowerCase() ? 'checked' : ''}>
+            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: ${color}; border: 2px solid white; box-shadow: 0 0 0 1px #ccc; margin-right: 10px;"></span>
+            <span style="font-weight: 500;">${name}</span>
+        </label>
+    `).join('');
 
     const bodyHtml = `
         <div class="space-y-4">
-            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px;">Positive Behavior Icon (The "+1" Icon)</h3>
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px;">Accent Color</h3>
+            <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">Change the main color used for buttons, links, and highlights across the ClassCharts interface.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;" id="accent-color-options">
+                ${colorOptionsHtml}
+            </div>
+            
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px;">Positive Behavior Icon (The "+1" Icon)</h3>
             <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">Choose the icon that appears next to positive behavior points on the dashboard.</p>
 
             <div style="display: flex; flex-direction: column; gap: 10px;" id="plus-one-icon-options">
@@ -766,12 +967,12 @@ function showAppearanceSettingsModal() {
     const closeBtn = document.getElementById('cc-settings-close-btn');
 
     closeBtn.addEventListener('click', closeModal);
-    
+
     document.querySelectorAll('input[name="plusOneIcon"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
             const selectedIcon = e.target.value;
             setPlusOneIcon(selectedIcon);
-            updateCustomIcons(); 
+            updateCustomIcons();
             document.querySelectorAll('label').forEach(label => {
                 const input = label.querySelector('input');
                 if (input && input.name === 'plusOneIcon') {
@@ -779,6 +980,56 @@ function showAppearanceSettingsModal() {
                 }
             });
         });
+    });
+
+    document.querySelectorAll('input[name="accentColor"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const selectedColor = e.target.value;
+            setAccentColor(selectedColor);
+            
+            document.querySelectorAll('label').forEach(label => {
+                const input = label.querySelector('input');
+                if (input && input.name === 'accentColor') {
+                    label.style.backgroundColor = input.value.toLowerCase() === selectedColor.toLowerCase() ? LIGHT_GREY : 'white';
+                }
+            });
+            
+            document.querySelector('.cc-settings-modal-card').style.borderTopColor = selectedColor;
+        });
+    });
+}
+
+function showDeveloperInfoModal() {
+    const bodyHtml = `
+        <p style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
+            This is the <strong>ClassCharts Improver Developer Information</strong> panel.
+            It provides diagnostic and version information for the extension.
+        </p>
+        <ul style="list-style-type: disc; padding-left: 20px; margin-bottom: 20px; color: #444;">
+            <li style="margin-bottom: 8px;"><strong>Version Key:</strong> ${CURRENT_VERSION_KEY}</li>
+            <li style="margin-bottom: 8px;"><strong>Accent Color:</strong> ${getAccentColor()}</li>
+            <li style="margin-bottom: 8px;"><strong>Plus One Icon:</strong> ${getPlusOneIcon()}</li>
+            <li><strong>Improved UI:</strong> ${getImprovedUIStatus() ? 'Enabled' : 'Disabled'}</li>
+        </ul>
+        <p style="font-size: 0.9rem; color: #555;">
+            <strong>Key Combo:</strong> The combination <strong>Ctrl + D</strong> (Cmd + D on Mac) is used to display this panel.
+        </p>
+        <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
+            <button id="cc-dev-info-close-btn" class="cc-notes-button cc-notes-save-btn">Close</button>
+        </div>
+    `;
+    const { closeModal } = createBaseModal('cc-dev-info', 'ClassCharts Improver: Developer Info', bodyHtml, '480px');
+    document.getElementById('cc-dev-info-close-btn').addEventListener('click', closeModal);
+}
+
+function setupKeyComboListener() {
+    document.addEventListener('keydown', (e) => {
+        const isCtrlD = (e.ctrlKey || e.metaKey) && e.key === 'd';
+
+        if (isCtrlD) {
+            e.preventDefault();
+            showDeveloperInfoModal();
+        }
     });
 }
 
@@ -801,8 +1052,8 @@ function applyCustomProfilePhoto() {
 
 function updateCustomIcons() {
     const iconToUse = getPlusOneIcon();
-    
-    const achievementSelectors = ['.jss63', '.jss66']; 
+
+    const achievementSelectors = ['.jss63', '.jss66'];
     const positiveElements = document.querySelectorAll(achievementSelectors.join(', '));
     const originalStyle = 'display: inline-flex; align-items: center; justify-content: center; background-color: #4CAF50; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.75rem; font-weight: bold; padding: 0;';
 
@@ -818,18 +1069,18 @@ function updateCustomIcons() {
             }
         } else if (element.textContent.trim() === '+1') {
             const iconUrl = getAssetUrl(iconToUse);
-            
+
             if (!element.dataset.ccImproverIcon) {
                 element.dataset.ccImproverOriginalCss = element.style.cssText;
             }
-            
-            element.dataset.ccImproverIcon = 'true'; 
-            
+
+            element.dataset.ccImproverIcon = 'true';
+
             element.innerHTML = `<img src="${iconUrl}" alt="Achievement Icon" style="width: 18px; height: 18px; margin-right: 2px; margin-top: 1px;">`;
             element.style.cssText = `
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 padding: 0;
                 background-color: ${POSITIVE_GREEN};
                 border-radius: 50%;
@@ -845,32 +1096,37 @@ function replacePositiveAchievementIcons() {
     updateCustomIcons();
 }
 
+// REMOVED: parseDate, getDateStatus, injectHomeworkDateHint
+
 function showWelcomeModal(callback) {
     const logoUrl = getAssetUrl('customlogo.png');
+    const accentColor = getAccentColor();
+    const darkerColor = applyAccentColor.darkenColor ? applyAccentColor.darkenColor(accentColor, -10) : '#0277BD';
+
     const welcomeHtml = `
         <style>
             .cc-welcome-card {
-                background: linear-gradient(135deg, #E3F2FD 0%, #FFFFFF 100%); 
-                border-radius: 16px; 
-                max-width: 480px; 
-                padding: 40px; 
-                box-shadow: 0 15px 40px rgba(3,155,229,0.3); 
-                text-align: center; 
+                background: linear-gradient(135deg, #E3F2FD 0%, #FFFFFF 100%);
+                border-radius: 16px;
+                max-width: 480px;
+                padding: 40px;
+                box-shadow: 0 15px 40px ${accentColor}33;
+                text-align: center;
                 font-family: Inter, Roboto, sans-serif;
                 transform: scale(0.95);
                 opacity: 0;
                 transition: all 0.3s ease-out;
             }
             .cc-welcome-backdrop {
-                position: fixed; 
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                height: 100%; 
-                background-color: rgba(0, 0, 0, 0.7); 
-                z-index: 1400; 
-                display: flex; 
-                justify-content: center; 
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 1400;
+                display: flex;
+                justify-content: center;
                 align-items: center;
             }
             .cc-welcome-card.visible {
@@ -878,28 +1134,28 @@ function showWelcomeModal(callback) {
                 opacity: 1;
             }
             .cc-welcome-logo {
-                width: 100px; 
-                height: 100px; 
-                margin-bottom: 20px; 
-                border-radius: 0; 
-                object-fit: contain; 
-                border: 4px solid ${PRIMARY_BLUE};
+                width: 100px;
+                height: 100px;
+                margin-bottom: 20px;
+                border-radius: 0;
+                object-fit: contain;
+                border: 4px solid ${accentColor};
                 box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             }
             .cc-welcome-dismiss-btn {
-                background-color: ${PRIMARY_BLUE}; 
-                color: white; 
-                border: none; 
-                padding: 12px 25px; 
-                border-radius: 8px; 
-                cursor: pointer; 
-                font-weight: 600; 
-                text-transform: uppercase; 
+                background-color: ${accentColor};
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                text-transform: uppercase;
                 transition: background-color 0.2s, transform 0.1s;
                 letter-spacing: 0.5px;
             }
             .cc-welcome-dismiss-btn:hover {
-                background-color: #0277BD;
+                background-color: ${darkerColor};
             }
             .cc-welcome-dismiss-btn:active {
                 transform: scale(0.98);
@@ -908,9 +1164,9 @@ function showWelcomeModal(callback) {
         <div id="cc-welcome-modal-backdrop" class="cc-welcome-backdrop">
             <div id="cc-welcome-modal-content" class="cc-welcome-card">
                 <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-welcome-logo">
-                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Update: New Features Arrived!</h2>
+                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${accentColor}; font-weight: 700;">Update: New Features Arrived!</h2>
                 <p style="font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 30px;">
-                    We've rolled out a new update, including the ability to add **Personal Notes**, a **Goals Tracker**, and set a **Custom Profile Photo** right from the side menu. Check out the new, improved UI!
+                    We've rolled out a new update, including the ability to add <strong>Personal Notes</strong>, a <strong>Goals Tracker</strong>, set a <strong>Custom Profile Photo</strong>, and choose a new <strong>Accent Color</strong> right from the side menu.
                 </p>
                 <button id="cc-welcome-dismiss-btn" class="cc-welcome-dismiss-btn">
                     Got it!
@@ -923,13 +1179,13 @@ function showWelcomeModal(callback) {
     const backdrop = document.getElementById('cc-welcome-modal-backdrop');
     const content = document.getElementById('cc-welcome-modal-content');
 
-    
+
     setTimeout(() => {
         content.classList.add('visible');
     }, 10);
 
     const dismiss = () => {
-        
+
         localStorage.setItem(WELCOME_SHOWN_KEY, 'true');
         content.classList.remove('visible');
         backdrop.style.backgroundColor = 'transparent';
@@ -951,32 +1207,33 @@ function showWelcomeModal(callback) {
 function showReviewModal() {
     const logoUrl = getAssetUrl('customlogo.png');
     const reviewLink = 'https://chromewebstore.google.com/detail/classcharts-improver/kalmdpfngeebamgaeegkieojhbkbghoe';
+    const accentColor = getAccentColor();
 
     const reviewHtml = `
         <style>
             .cc-review-card {
                 background-color: white;
-                border-radius: 16px; 
-                max-width: 480px; 
-                padding: 40px; 
-                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); 
-                text-align: center; 
+                border-radius: 16px;
+                max-width: 480px;
+                padding: 40px;
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+                text-align: center;
                 font-family: Inter, Roboto, sans-serif;
-                border-top: 5px solid ${PRIMARY_BLUE};
+                border-top: 5px solid ${accentColor};
                 transform: scale(0.95);
                 opacity: 0;
                 transition: all 0.3s ease-out;
             }
             .cc-review-backdrop {
-                position: fixed; 
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                height: 100%; 
-                background-color: rgba(0, 0, 0, 0.7); 
-                z-index: 1400; 
-                display: flex; 
-                justify-content: center; 
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 1400;
+                display: flex;
+                justify-content: center;
                 align-items: center;
             }
             .cc-review-card.visible {
@@ -984,21 +1241,21 @@ function showReviewModal() {
                 opacity: 1;
             }
             .cc-review-logo {
-                width: 100px; 
-                height: 100px; 
-                margin-bottom: 20px; 
-                border-radius: 16px; 
-                object-fit: contain; 
+                width: 100px;
+                height: 100px;
+                margin-bottom: 20px;
+                border-radius: 16px;
+                object-fit: contain;
             }
             .cc-review-btn-primary {
-                background-color: ${POSITIVE_GREEN}; 
-                color: white; 
-                border: none; 
-                padding: 10px 20px; 
-                border-radius: 8px; 
-                cursor: pointer; 
-                font-weight: 600; 
-                text-transform: uppercase; 
+                background-color: ${POSITIVE_GREEN};
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                text-transform: uppercase;
                 transition: background-color 0.2s, transform 0.1s;
                 letter-spacing: 0.5px;
             }
@@ -1006,13 +1263,13 @@ function showReviewModal() {
                 background-color: #388E3C;
             }
             .cc-review-btn-secondary {
-                background-color: #e0e0e0; 
-                color: #333; 
-                border: none; 
-                padding: 10px 15px; 
-                border-radius: 8px; 
-                cursor: pointer; 
-                font-weight: 500; 
+                background-color: #e0e0e0;
+                color: #333;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 500;
                 transition: background-color 0.2s;
             }
             .cc-review-btn-secondary:hover {
@@ -1022,7 +1279,7 @@ function showReviewModal() {
         <div id="cc-review-modal-backdrop" class="cc-review-backdrop">
             <div id="cc-review-modal-content" class="cc-review-card">
                 <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-review-logo">
-                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Enjoying the Improver?</h2>
+                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${accentColor}; font-weight: 700;">Enjoying the Improver?</h2>
                 <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 30px;">
                     A simple rating or review helps other students discover these useful features. Would you mind taking 30 seconds to support the extension?
                 </p>
@@ -1042,8 +1299,8 @@ function showReviewModal() {
     document.body.insertAdjacentHTML('beforeend', reviewHtml);
     const backdrop = document.getElementById('cc-review-modal-backdrop');
     const content = document.getElementById('cc-review-modal-content');
-    
-    
+
+
     setTimeout(() => {
         content.classList.add('visible');
     }, 10);
@@ -1056,12 +1313,12 @@ function showReviewModal() {
             backdrop.remove();
         }, 300);
     };
-    
+
     document.getElementById('cc-review-later-btn').addEventListener('click', dismiss);
-    
-    
+
+
     document.getElementById('cc-review-dismiss-btn').addEventListener('click', dismiss);
-    
+
     backdrop.addEventListener('click', (event) => {
         if (event.target === backdrop) {
             dismiss();
@@ -1070,16 +1327,15 @@ function showReviewModal() {
 }
 
 function checkAndShowModals() {
-    
     if (localStorage.getItem(WELCOME_SHOWN_KEY) !== 'true') {
         showWelcomeModal(() => {
-            
+
             if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
                 showReviewModal();
             }
         });
-    } 
-    
+    }
+
     else if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
         showReviewModal();
     }
@@ -1119,6 +1375,7 @@ function injectContactLink() {
     const searchInput = document.querySelector('input[placeholder="Search by teacher name"]');
     const searchInputContainer = searchInput ? searchInput.closest('.MuiInputBase-root.MuiOutlinedInput-root') : null;
     const injectedClass = 'cc-improver-contact-link';
+    const accentColor = getAccentColor();
 
     if (searchInputContainer && !document.querySelector('.' + injectedClass)) {
         const linkHtml = `
@@ -1128,7 +1385,7 @@ function injectContactLink() {
                 font-size: 0.85rem;
                 font-family: inherit;
             ">
-                <a href="mailto:hi.opticflowstudios@gmail.com" style="color: ${PRIMARY_BLUE}; text-decoration: none; font-weight: 500; transition: color 0.2s;">
+                <a href="mailto:hi.opticflowstudios@gmail.com" style="color: ${accentColor}; text-decoration: none; font-weight: 500; transition: color 0.2s;">
                     Contact ClassCharts Improver Extension
                 </a>
             </div>
@@ -1146,7 +1403,7 @@ function injectCodeWarning() {
     if (dialogPaper.querySelector('.cc-improver-code-warning')) return;
     const dialogContent = dialogPaper.querySelector('.MuiDialogContent-root');
     if (!dialogContent) return;
-    
+
     const warningHtml = `
         <div class="cc-improver-code-warning" style="
             background-color: #fff8e1;
@@ -1169,24 +1426,24 @@ function injectCodeWarning() {
 }
 
 function injectMessagesPlaceholderContent() {
-    const placeholderDiv = document.querySelector('.jss53'); 
+    const placeholderDiv = document.querySelector('.jss53');
     const injectedClass = 'cc-improver-messages-guide';
-    
-    if (placeholderDiv && 
+
+    if (placeholderDiv &&
         placeholderDiv.textContent.includes('Please select a thread') &&
         !placeholderDiv.classList.contains(injectedClass)
     ) {
         placeholderDiv.classList.add(injectedClass);
         placeholderDiv.textContent = 'Select a teacher on the left side to view the messages you have exchanged.';
-        
+
         const imgUrl = getAssetUrl('threadtutorial.png');
         const img = document.createElement('img');
         img.src = imgUrl;
         img.alt = 'Guide showing how to select a teacher thread';
-        
+
         placeholderDiv.style.cssText = 'text-align: center; padding-top: 40px; font-weight: 500; color: #444;';
         img.style.cssText = 'max-width: 100%; height: auto; margin-top: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);';
-        
+
         placeholderDiv.appendChild(img);
     }
 }
@@ -1194,23 +1451,23 @@ function injectMessagesPlaceholderContent() {
 function injectAnnouncementsDescription() {
     const announcementHeader = document.querySelector('h5.MuiTypography-root.MuiTypography-h5');
     const injectedClass = 'cc-improver-announcements-desc';
-    
-    if (announcementHeader && 
-        announcementHeader.textContent.trim() === 'Announcements' && 
+
+    if (announcementHeader &&
+        announcementHeader.textContent.trim() === 'Announcements' &&
         !announcementHeader.parentElement.querySelector('.' + injectedClass)
     ) {
         const descriptionHtml = `
             <p class="${injectedClass}" style="
-                font-size: 0.9rem; 
-                color: #777; 
-                margin-top: 4px; 
-                margin-bottom: 16px; 
+                font-size: 0.9rem;
+                color: #777;
+                margin-top: 4px;
+                margin-bottom: 16px;
                 font-weight: 400;
             ">
                 View the latest news from your school below.
             </p>
         `;
-        
+
         announcementHeader.insertAdjacentHTML('afterend', descriptionHtml);
     }
 }
@@ -1218,25 +1475,26 @@ function injectAnnouncementsDescription() {
 function injectLoginAlert() {
     const targetDiv = document.querySelector('.box');
     const injectedClass = 'cc-improver-login-alert';
-    
+    const accentColor = getAccentColor();
+
     if (targetDiv && !targetDiv.nextElementSibling?.classList.contains(injectedClass)) {
         const alertHtml = `
             <div class="${injectedClass}" style="
-                background-color: #e3f2fd; 
-                border-left: 4px solid ${PRIMARY_BLUE}; 
-                color: #01579B; 
-                padding: 16px; 
-                margin-top: 20px; 
-                border-radius: 8px; 
-                display: flex; 
-                align-items: flex-start; 
+                background-color: #e3f2fd;
+                border-left: 4px solid ${accentColor};
+                color: #01579B;
+                padding: 16px;
+                margin-top: 20px;
+                border-radius: 8px;
+                display: flex;
+                align-items: flex-start;
                 font-family: inherit;
             ">
                 <img src="${getAssetUrl(INFO_ICON_FILE)}" alt="Info Icon" style="
-                    width: 24px; 
-                    height: 24px; 
+                    width: 24px;
+                    height: 24px;
                     min-width: 24px;
-                    margin-right: 15px; 
+                    margin-right: 15px;
                     filter: invert(33%) sepia(91%) saturate(2224%) hue-rotate(188deg) brightness(97%) contrast(92%);
                 ">
                 <div>
@@ -1258,7 +1516,7 @@ function showRefreshTweaksModal() {
         <div style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
             <p>This action will reload the page to restart the ClassCharts Improver extension.</p>
             <p style="margin-top: 10px;">This is useful if you notice any custom tweaks (like icons, notes, or layout changes) not appearing correctly on the current page.</p>
-            <p style="margin-top: 15px; font-weight: 600; color: #E53935;">⚠️ Any unsaved work on the ClassCharts page itself (e.g., editing homework) will be lost.</p>
+            <p style="margin-top: 15px; font-weight: 600; color: ${OVERDUE_COLOR};">⚠️ Any unsaved work on the ClassCharts page itself (e.g., editing homework) will be lost.</p>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
             <button id="cc-refresh-cancel-btn" class="cc-notes-button cc-notes-cancel-btn">Cancel</button>
@@ -1266,7 +1524,7 @@ function showRefreshTweaksModal() {
         </div>
     `;
     const { closeModal } = createBaseModal('cc-refresh-tweaks', 'Refresh Extension Tweaks', bodyHtml, '450px');
-    
+
     document.getElementById('cc-refresh-cancel-btn').addEventListener('click', closeModal);
     document.getElementById('cc-refresh-continue-btn').addEventListener('click', () => {
         window.location.reload();
@@ -1279,43 +1537,104 @@ function injectRefreshTweaksButton() {
 
     if (myCodeButton && !document.querySelector('.' + injectedClass)) {
         const refreshButton = myCodeButton.cloneNode(true);
-        
+
         refreshButton.classList.add(injectedClass);
-        
+
         const label = refreshButton.querySelector('.MuiButton-label');
         if (label) {
             label.textContent = 'Refresh Tweaks';
         }
-        
+
         refreshButton.addEventListener('click', (event) => {
-            event.preventDefault(); 
-            event.stopPropagation(); 
+            event.preventDefault();
+            event.stopPropagation();
             showRefreshTweaksModal();
         });
-        
+
         myCodeButton.insertAdjacentElement('beforebegin', refreshButton);
     }
 }
 
+function showLoadingModal() {
+    // Only show on first load, not subsequent reloads/pushes in the same session
+    if (sessionStorage.getItem(SESSION_LOADER_SHOWN_KEY) === 'true' || window.location.pathname.endsWith('/student/login')) {
+        return () => {}; // Return a no-op function if already shown or on login page
+    }
 
-function initObserver() {
+    const accentColor = getAccentColor();
+
+    const modalHtml = `
+        <div id="cc-loading-modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.95); z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s ease-out;">
+            <div style="
+                background-color: white;
+                border-radius: 12px;
+                padding: 40px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                border-top: 5px solid ${accentColor};
+                transition: border-top-color 0.5s;
+            ">
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: #212121; margin-bottom: 25px;">Please Wait...</h2>
+                <div style="width: 100%; height: 8px; background-color: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden;">
+                    <div id="cc-loading-progress" style="width: 0%; height: 100%; background-color: ${accentColor}; transition: width 0.3s ease-in-out, background-color 0.5s;"></div>
+                </div>
+                <p style="font-size: 1rem; color: #555;">Loading ClassCharts and Tweaks</p>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const progress = document.getElementById('cc-loading-progress');
+    const backdrop = document.getElementById('cc-loading-modal-backdrop');
+
+    let percent = 0;
+    const interval = setInterval(() => {
+        if (percent < 90) {
+            percent += 10;
+            progress.style.width = `${percent}%`;
+        }
+    }, 300);
+
+    const finishLoading = () => {
+        if (!backdrop || !backdrop.parentElement) return; // Already removed
+        clearInterval(interval);
+        progress.style.width = '100%';
+
+        setTimeout(() => {
+            backdrop.style.opacity = '0';
+            sessionStorage.setItem(SESSION_LOADER_SHOWN_KEY, 'true');
+            setTimeout(() => {
+                backdrop.remove();
+            }, 500);
+        }, 800);
+    };
+
+    return finishLoading;
+}
+
+
+function initObserver(finishLoadingCallback) {
     let attempts = 0;
     const maxAttempts = 30;
 
     replaceClassChartsLogo();
     applyImprovedUI(getImprovedUIStatus());
-    applyCustomProfilePhoto(); 
+    applyAccentColor(getAccentColor()); // Apply color immediately
+    applyCustomProfilePhoto();
     updateCustomIcons();
 
     const interval = setInterval(() => {
         const menuInjected = document.querySelector('.cc-improver-header');
-        
+
         updateDefaultIcons();
         updateCustomIcons();
-        
+        // REMOVED: injectHomeworkDateHint();
+
         if (!menuInjected) {
             if (createMenuItem()) {
-                
+
                 checkAndShowModals();
             }
         }
@@ -1324,8 +1643,15 @@ function initObserver() {
         injectContactLink();
         injectCodeWarning();
         injectMessagesPlaceholderContent();
-        injectAnnouncementsDescription(); 
-        injectRefreshTweaksButton(); 
+        injectAnnouncementsDescription();
+        injectRefreshTweaksButton();
+        
+        // Signal loading completion after initial setup has run once successfully
+        if (attempts === 1 && finishLoadingCallback) {
+            finishLoadingCallback();
+            finishLoadingCallback = null;
+        }
+
 
         if (attempts >= maxAttempts) {
             clearInterval(interval);
@@ -1334,5 +1660,12 @@ function initObserver() {
     }, 500);
 }
 
+// --- Initial Execution ---
+const finishLoading = showLoadingModal(); // Setup loading modal
+
 injectLoginAlert();
-initObserver();
+setupKeyComboListener();
+console.warn("ClassCharts Improver is active. This extension modifies the site's default behavior and appearance. For more details and troubleshooting information, press Ctrl+D (Cmd+D on Mac) to open the developer info panel.");
+
+// Pass the callback to the observer to dismiss the loading modal after initial load
+initObserver(finishLoading);
