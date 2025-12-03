@@ -1,22 +1,20 @@
 const NOTES_STORAGE_KEY = 'classcharts_personal_notes';
 const GOALS_STORAGE_KEY = 'classcharts_personal_goals';
 const PROFILE_PHOTO_STORAGE_KEY = 'classcharts_custom_profile_photo';
-const ACCENT_COLOR_KEY = 'classcharts_improver_accent_color';
-const DEFAULT_ACCENT_COLOR = '#039BE5'; // ClassCharts original blue
 
-const CURRENT_VERSION_KEY = 'classcharts_improver_version_v5_2';
+const CURRENT_VERSION_KEY = 'classcharts_improver_version_v5_4';
 const WELCOME_SHOWN_KEY = `classcharts_improver_welcome_shown_${CURRENT_VERSION_KEY}`;
 const REVIEW_SHOWN_KEY = `classcharts_improver_review_shown_${CURRENT_VERSION_KEY}`;
-const SESSION_LOADER_SHOWN_KEY = 'cc_improver_loader_shown'; // New constant for loading modal
 
 const IMPROVED_UI_KEY = 'classcharts_improver_improved_ui_enabled';
 const PLUS_ONE_ICON_KEY = 'classcharts_improver_plus_one_icon';
+const HOMEWORK_DATE_HINT_KEY = 'classcharts_improver_homework_date_hint_enabled';
 
 const MESSAGE_MENU_SELECTOR = '.MuiButtonBase-root.MuiListItem-root.desktop-drawer-pupil-menu-item:last-child';
+const PRIMARY_BLUE = '#039BE5';
 const LIGHT_GREY = '#f5f5f5';
 
 const POSITIVE_GREEN = '#4CAF50';
-const OVERDUE_COLOR = '#E53935';
 
 const NOTES_ICON_FILE = 'edit-3.svg';
 const GOALS_ICON_FILE = 'target.svg';
@@ -47,15 +45,6 @@ const DEFAULT_MENU_TEXT_MAPPING = {
     5: 'Timetable',
     8: 'Messages'
 };
-
-function getAccentColor() {
-    return localStorage.getItem(ACCENT_COLOR_KEY) || DEFAULT_ACCENT_COLOR;
-}
-
-function setAccentColor(color) {
-    localStorage.setItem(ACCENT_COLOR_KEY, color);
-    applyAccentColor(color);
-}
 
 function loadNotes() {
     return localStorage.getItem(NOTES_STORAGE_KEY) || '';
@@ -103,20 +92,30 @@ function setPlusOneIcon(icon) {
     localStorage.setItem(PLUS_ONE_ICON_KEY, icon);
 }
 
+function getHomeworkDateHintStatus() {
+    return localStorage.getItem(HOMEWORK_DATE_HINT_KEY) === 'true';
+}
+
+function setHomeworkDateHintStatus(enabled) {
+    localStorage.setItem(HOMEWORK_DATE_HINT_KEY, enabled ? 'true' : 'false');
+}
+
 function updateAllMenuIcons() {
     updateDefaultIcons();
     const menuItems = document.querySelectorAll('.desktop-drawer-pupil-menu-item');
     const noteItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Personal Notes');
     const goalsItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Goals Tracker');
+    const settingsHubItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Settings & Customization');
     const aboutItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'About');
-    const photoItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Upload Custom Profile Photo');
-    const settingsItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'More Appearance Settings');
+    // const photoItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Upload Custom Profile Photo'); // Removed
+    // const settingsItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'More Appearance Settings'); // Removed
 
     if (noteItem) replaceIcon(noteItem, NOTES_ICON_FILE);
     if (goalsItem) replaceIcon(goalsItem, GOALS_ICON_FILE);
+    if (settingsHubItem) replaceIcon(settingsHubItem, SETTINGS_ICON_FILE); // New
     if (aboutItem) replaceIcon(aboutItem, INFO_ICON_FILE);
-    if (photoItem) replaceIcon(photoItem, CAMERA_ICON_FILE);
-    if (settingsItem) replaceIcon(settingsItem, SETTINGS_ICON_FILE);
+    // if (photoItem) replaceIcon(photoItem, CAMERA_ICON_FILE); // Removed
+    // if (settingsItem) replaceIcon(settingsItem, SETTINGS_ICON_FILE); // Removed
 }
 
 const getAssetUrl = (filename) => {
@@ -137,108 +136,6 @@ function replaceClassChartsLogo() {
     }
 }
 
-function applyAccentColor(color) {
-    let style = document.getElementById('cc-improver-accent-style');
-    if (!style) {
-        style = document.createElement('style');
-        style.id = 'cc-improver-accent-style';
-        document.head.appendChild(style);
-    }
-
-    // A simple function to generate a slightly darker color for hover effects
-    function darkenColor(hex, percent) {
-        let R = parseInt(hex.substring(1,3),16);
-        let G = parseInt(hex.substring(3,5),16);
-        let B = parseInt(hex.substring(5,7),16);
-
-        R = parseInt(R * (100 + percent) / 100);
-        G = parseInt(G * (100 + percent) / 100);
-        B = parseInt(B * (100 + percent) / 100);
-
-        R = (R<255)?R:255;  
-        G = (G<255)?G:255;  
-        B = (B<255)?B:255;  
-
-        let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-        let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-        let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-
-        return "#"+RR+GG+BB;
-    }
-    const darkerColor = darkenColor(color, -10);
-
-    style.textContent = `
-        :root {
-            --cc-improver-accent: ${color} !important;
-            --cc-improver-accent-darker: ${darkerColor} !important;
-        }
-
-        /* ClassCharts Mui Overrides */
-        .MuiAppBar-colorPrimary, 
-        .MuiChip-colorPrimary, 
-        .MuiButton-containedPrimary,
-        .MuiButton-textPrimary,
-        .MuiTabs-indicator,
-        .MuiSwitch-colorPrimary.Mui-checked,
-        .MuiRadio-colorPrimary.Mui-checked,
-        .MuiCheckbox-colorPrimary.Mui-checked {
-            background-color: var(--cc-improver-accent) !important;
-            color: white !important;
-        }
-        .MuiTypography-colorTextPrimary,
-        .MuiSvgIcon-colorSecondary,
-        .MuiSvgIcon-colorPrimary,
-        .MuiIcon-colorPrimary {
-             color: var(--cc-improver-accent) !important;
-        }
-
-        /* Custom Modal Overrides (using injected styles) */
-        .cc-notes-save-btn,
-        .cc-goals-save-btn,
-        .cc-settings-save-btn,
-        .cc-welcome-dismiss-btn {
-            background-color: var(--cc-improver-accent) !important;
-            box-shadow: 0 4px 8px ${color}4d !important; /* Adds a shadow based on the accent color */
-        }
-        .cc-notes-save-btn:hover,
-        .cc-goals-save-btn:hover,
-        .cc-settings-save-btn:hover,
-        .cc-welcome-dismiss-btn:hover {
-            background-color: var(--cc-improver-accent-darker) !important;
-        }
-        .cc-goal-checkbox:checked,
-        .cc-switch input:checked + .cc-slider {
-            background-color: var(--cc-improver-accent) !important;
-            border-color: var(--cc-improver-accent) !important;
-        }
-        .cc-goal-checkbox {
-            border-color: var(--cc-improver-accent) !important;
-        }
-        .cc-notes-textarea:focus, .cc-add-goal-input:focus {
-            border-color: var(--cc-improver-accent) !important;
-            box-shadow: 0 0 0 3px ${color}33 !important;
-        }
-        
-        /* Modal & UI Elements */
-        .cc-profile-photo-preview { border-color: var(--cc-improver-accent) !important; }
-        .cc-review-card { border-top-color: var(--cc-improver-accent) !important; }
-        .cc-welcome-logo { border-color: var(--cc-improver-accent) !important; }
-        .cc-improver-login-alert { border-left-color: var(--cc-improver-accent) !important; }
-        #cc-loading-progress { background-color: var(--cc-improver-accent) !important; }
-
-        /* Links */
-        .cc-improver-contact-link a { color: var(--cc-improver-accent) !important; }
-    `;
-    
-    // Force update of custom modal headers/borders if they are open
-    document.querySelectorAll('.cc-notes-modal-card, .cc-goals-modal-card, .cc-settings-modal-card').forEach(card => {
-        if (card.style.borderTop) {
-             card.style.borderTopColor = color;
-        }
-    });
-
-}
-
 function applyImprovedUI(enabled) {
     const body = document.body;
     if (enabled) {
@@ -256,6 +153,16 @@ function applyImprovedUI(enabled) {
             }
             .cc-improver-improved-ui .MuiCardHeader-root {
                 border-bottom: 1px solid #f0f0f0;
+            }
+            .cc-improver-improved-ui .calendar-header-open-button,
+            .cc-improver-improved-ui button[class*="calendar-"] {
+                background-color: ${PRIMARY_BLUE} !important;
+                color: white !important;
+                box-shadow: 0 2px 4px rgba(3,155,229,0.4) !important;
+            }
+            .cc-improver-improved-ui .calendar-header-open-button:hover,
+            .cc-improver-improved-ui button[class*="calendar-"]:hover {
+                background-color: #0277BD !important;
             }
         `;
         document.head.appendChild(style);
@@ -359,12 +266,20 @@ function createMenuItem() {
         showGoalsModal();
     }, 'cc-improver-goals-menu-item');
 
+    // NEW: Unified Settings Item
+    const settingsHubItem = createItem('Settings & Customization', SETTINGS_ICON_FILE, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showAllSettingsModal();
+    }, 'cc-improver-settings-hub-menu-item');
+
     const aboutItem = createItem('About', INFO_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
         showAboutModal();
     }, 'cc-improver-about-menu-item');
 
+    /* REMOVED: Individual settings items
     const profilePhotoItem = createItem('Upload Custom Profile Photo', CAMERA_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -376,7 +291,7 @@ function createMenuItem() {
         event.stopPropagation();
         showAppearanceSettingsModal();
     }, 'cc-improver-settings-menu-item');
-
+    */
 
     const improverHeaderHtml = `
         <div class="cc-improver-header" style="padding: 16px; padding-bottom: 8px; font-weight: 700; color: rgba(0, 0, 0, 0.54); font-size: 0.875rem; text-transform: uppercase;">
@@ -385,18 +300,30 @@ function createMenuItem() {
         <div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>
     `;
 
+    /* REMOVED: Appearance header
     const appearanceHeaderHtml = `
         <div class="cc-improver-header cc-improver-appearance-header" style="padding: 16px; padding-bottom: 8px; font-weight: 700; color: rgba(0, 0, 0, 0.54); font-size: 0.875rem; text-transform: uppercase;">
             Appearance
         </div>
         <div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>
     `;
+    */
 
     const finalDividerHtml = `<div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>`;
 
     messagesItem.after(notesItem);
     notesItem.after(goalsItem);
     notesItem.insertAdjacentHTML('beforebegin', improverHeaderHtml);
+
+    // NEW INSERTION: goals -> settingsHub -> about -> divider
+    goalsItem.after(settingsHubItem);
+    settingsHubItem.after(aboutItem);
+
+    // Final Divider after About
+    aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
+
+
+    /* REMOVED: Old insertion logic
     goalsItem.after(aboutItem);
 
     aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
@@ -407,11 +334,13 @@ function createMenuItem() {
     appearanceHeader.insertAdjacentElement('afterend', profilePhotoItem);
     profilePhotoItem.insertAdjacentElement('afterend', settingsItem);
     settingsItem.insertAdjacentHTML('afterend', finalDividerHtml);
+    */
 
     return true;
 }
 
 function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
+    const wrappedTitle = `<span class="${idPrefix}-modal-title-text">${title}</span>`;
     const modalHtml = `
         <style>
             .${idPrefix}-modal-card {
@@ -433,6 +362,13 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 justify-content: space-between;
                 align-items: center;
                 background-color: #f7f7f7;
+            }
+            .${idPrefix}-modal-title-text {
+                flex-shrink: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             .${idPrefix}-modal-body {
                 padding: 24px;
@@ -464,12 +400,12 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 transform: scale(0.98);
             }
             .${idPrefix}-save-btn {
-                background-color: var(--cc-improver-accent);
+                background-color: ${PRIMARY_BLUE};
                 color: white;
-                box-shadow: 0 4px 8px var(--cc-improver-accent);
+                box-shadow: 0 4px 8px rgba(3,155,229,0.4);
             }
             .${idPrefix}-save-btn:hover {
-                background-color: var(--cc-improver-accent-darker);
+                background-color: #0277BD;
             }
             .${idPrefix}-cancel-btn {
                 background-color: #e0e0e0;
@@ -493,8 +429,8 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 white-space: pre-wrap;
             }
             .cc-notes-textarea:focus, .cc-add-goal-input:focus {
-                border-color: var(--cc-improver-accent);
-                box-shadow: 0 0 0 3px var(--cc-improver-accent)33;
+                border-color: ${PRIMARY_BLUE};
+                box-shadow: 0 0 0 3px rgba(3,155,229,0.2);
             }
             .cc-notes-display-content {
                 min-height: 150px;
@@ -528,7 +464,7 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 -webkit-appearance: none;
                 width: 20px;
                 height: 20px;
-                border: 2px solid var(--cc-improver-accent);
+                border: 2px solid ${PRIMARY_BLUE};
                 border-radius: 4px;
                 margin-right: 15px;
                 cursor: pointer;
@@ -537,8 +473,8 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
                 min-width: 20px;
             }
             .cc-goal-checkbox:checked {
-                background-color: var(--cc-improver-accent);
-                border-color: var(--cc-improver-accent);
+                background-color: ${PRIMARY_BLUE};
+                border-color: ${PRIMARY_BLUE};
             }
             .cc-goal-checkbox:checked::after {
                 content: '';
@@ -605,11 +541,11 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
             }
 
             input:checked + .cc-slider {
-              background-color: var(--cc-improver-accent);
+              background-color: ${PRIMARY_BLUE};
             }
 
             input:focus + .cc-slider {
-              box-shadow: 0 0 1px var(--cc-improver-accent);
+              box-shadow: 0 0 1px ${PRIMARY_BLUE};
             }
 
             input:checked + .cc-slider:before {
@@ -629,7 +565,7 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
         <div id="${idPrefix}-modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1300; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s;">
             <div id="${idPrefix}-modal-content" class="${idPrefix}-modal-card">
                 <div class="${idPrefix}-modal-header">
-                    ${title}
+                    ${wrappedTitle}
                     <button id="${idPrefix}-close-x" class="${idPrefix}-close-x">&times;</button>
                 </div>
                 <div class="${idPrefix}-modal-body">
@@ -662,6 +598,71 @@ function createBaseModal(idPrefix, title, bodyHtml, maxWidth = '500px') {
         }
     });
     return { closeModal };
+}
+
+function showAllSettingsModal() {
+    const bodyHtml = `
+        <p style="font-size: 1rem; color: #444; margin-bottom: 25px;">
+            Manage all ClassCharts Improver settings and customizations in one place.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button id="cc-open-photo-modal" class="cc-settings-hub-button" style="
+                background-color: #E3F2FD;
+                color: ${PRIMARY_BLUE};
+                border: 1px solid ${PRIMARY_BLUE};
+                padding: 15px;
+                border-radius: 8px;
+                font-weight: 600;
+                text-align: left;
+                cursor: pointer;
+                transition: background-color 0.2s, box-shadow 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            ">
+                Custom Profile Photo
+                <span style="font-size: 1.5rem; line-height: 1;">&rarr;</span>
+            </button>
+            <button id="cc-open-appearance-modal" class="cc-settings-hub-button" style="
+                background-color: #E8F5E9;
+                color: ${POSITIVE_GREEN};
+                border: 1px solid ${POSITIVE_GREEN};
+                padding: 15px;
+                border-radius: 8px;
+                font-weight: 600;
+                text-align: left;
+                cursor: pointer;
+                transition: background-color 0.2s, box-shadow 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            ">
+                More Appearance Settings
+                <span style="font-size: 1.5rem; line-height: 1;">&rarr;</span>
+            </button>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
+            <button id="cc-settings-hub-close-btn" class="cc-notes-button cc-notes-cancel-btn">Close</button>
+        </div>
+        <style>
+             .cc-settings-hub-button:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+             }
+        </style>
+    `;
+
+    const { closeModal } = createBaseModal('cc-settings-hub', 'Settings & Customization', bodyHtml, '450px');
+    document.getElementById('cc-settings-hub-close-btn').addEventListener('click', closeModal);
+
+    document.getElementById('cc-open-photo-modal').addEventListener('click', () => {
+        closeModal();
+        showProfilePhotoModal();
+    });
+
+    document.getElementById('cc-open-appearance-modal').addEventListener('click', () => {
+        closeModal();
+        showAppearanceSettingsModal();
+    });
 }
 
 function showNotesModal() {
@@ -803,12 +804,6 @@ function showGoalsModal() {
         }
     };
 
-    const clearCompleted = () => {
-        currentGoals = loadGoals().filter(goal => !goal.completed);
-        saveGoals(currentGoals);
-        renderGoals();
-    };
-
     addBtn.addEventListener('click', addGoal);
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addGoal();
@@ -847,18 +842,16 @@ function showAboutModal() {
 
 function showProfilePhotoModal() {
     const currentPhoto = loadCustomProfilePhoto() || CLASSCHARTS_DEFAULT_PHOTO_URL;
-    const accentColor = getAccentColor();
 
     const bodyHtml = `
         <div style="font-size: 1rem; color: #333; margin-bottom: 25px; background-color: #f7f7f7; padding: 15px; border-radius: 8px;">
-            <p style="font-weight: 600; color: ${accentColor}; margin-bottom: 10px;">Your Privacy, Our Priority</p>
+            <p style="font-weight: 600; color: ${PRIMARY_BLUE}; margin-bottom: 10px;">Your Privacy, Our Priority</p>
             <p>This custom profile photo is <strong>only visible to you</strong> and is stored entirely within your browser's local memory. It will not be shared with your school, teachers, or other students. You can change or remove it anytime.</p>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
             <img id="cc-current-photo-preview" src="${currentPhoto}"
                  alt="Current Profile Photo"
-                 class="cc-profile-photo-preview"
-                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid ${accentColor};">
+                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid ${PRIMARY_BLUE};">
 
             <input type="file" id="cc-photo-upload-input" accept="image/*" style="display: none;">
             <button id="cc-photo-upload-btn" class="cc-notes-button cc-notes-save-btn" style="min-width: 180px;">
@@ -905,38 +898,11 @@ function showProfilePhotoModal() {
 
 function showAppearanceSettingsModal() {
     const currentIcon = getPlusOneIcon();
-    const currentAccentColor = getAccentColor();
-
-    const PRESET_COLORS = {
-        'Blue (Default)': DEFAULT_ACCENT_COLOR,
-        'Indigo': '#3F51B5',
-        'Green': '#4CAF50',
-        'Orange': '#FF9800',
-        'Red': '#E53935',
-        'Purple': '#9C27B0',
-        'Teal': '#009688',
-        'Pink': '#E91E63',
-        'Yellow': '#FFEB3B',
-    };
-
-    const colorOptionsHtml = Object.entries(PRESET_COLORS).map(([name, color]) => `
-        <label style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; background-color: ${currentAccentColor.toLowerCase() === color.toLowerCase() ? LIGHT_GREY : 'white'};">
-            <input type="radio" name="accentColor" value="${color}" style="margin-right: 15px; transform: scale(1.2);" ${currentAccentColor.toLowerCase() === color.toLowerCase() ? 'checked' : ''}>
-            <span style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: ${color}; border: 2px solid white; box-shadow: 0 0 0 1px #ccc; margin-right: 10px;"></span>
-            <span style="font-weight: 500;">${name}</span>
-        </label>
-    `).join('');
+    const isHomeworkHintEnabled = getHomeworkDateHintStatus();
 
     const bodyHtml = `
         <div class="space-y-4">
-            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px;">Accent Color</h3>
-            <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">Change the main color used for buttons, links, and highlights across the ClassCharts interface.</p>
-
-            <div style="display: flex; flex-direction: column; gap: 10px;" id="accent-color-options">
-                ${colorOptionsHtml}
-            </div>
-            
-            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px;">Positive Behavior Icon (The "+1" Icon)</h3>
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px;">Positive Behavior Icon (The "+1" Icon)</h3>
             <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">Choose the icon that appears next to positive behavior points on the dashboard.</p>
 
             <div style="display: flex; flex-direction: column; gap: 10px;" id="plus-one-icon-options">
@@ -955,6 +921,16 @@ function showAppearanceSettingsModal() {
                     <input type="radio" name="plusOneIcon" value="award.svg" style="margin-right: 15px; transform: scale(1.2);" ${currentIcon === 'award.svg' ? 'checked' : ''}>
                     <img src="${getAssetUrl('award.svg')}" alt="Award Icon" style="width: 20px; height: 20px; margin-right: 10px;">
                     <span style="font-weight: 500;">Award Icon</span>
+                </label>
+            </div>
+
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px;">New Feature Toggles</h3>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background-color: white;">
+                <label for="cc-homework-hint-toggle" style="font-weight: 500; color: #333; flex-grow: 1;">Show Prominent Due Date on Homework Cards</label>
+                <label class="cc-switch">
+                    <input type="checkbox" id="cc-homework-hint-toggle" ${isHomeworkHintEnabled ? 'checked' : ''}>
+                    <span class="cc-slider round"></span>
                 </label>
             </div>
         </div>
@@ -981,25 +957,17 @@ function showAppearanceSettingsModal() {
             });
         });
     });
-
-    document.querySelectorAll('input[name="accentColor"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const selectedColor = e.target.value;
-            setAccentColor(selectedColor);
-            
-            document.querySelectorAll('label').forEach(label => {
-                const input = label.querySelector('input');
-                if (input && input.name === 'accentColor') {
-                    label.style.backgroundColor = input.value.toLowerCase() === selectedColor.toLowerCase() ? LIGHT_GREY : 'white';
-                }
-            });
-            
-            document.querySelector('.cc-settings-modal-card').style.borderTopColor = selectedColor;
-        });
+    
+    document.getElementById('cc-homework-hint-toggle').addEventListener('change', (e) => {
+        const enabled = e.target.checked;
+        setHomeworkDateHintStatus(enabled);
+        injectHomeworkDateHint();
     });
 }
 
 function showDeveloperInfoModal() {
+    const isHomeworkHintEnabled = getHomeworkDateHintStatus();
+
     const bodyHtml = `
         <p style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
             This is the <strong>ClassCharts Improver Developer Information</strong> panel.
@@ -1007,9 +975,9 @@ function showDeveloperInfoModal() {
         </p>
         <ul style="list-style-type: disc; padding-left: 20px; margin-bottom: 20px; color: #444;">
             <li style="margin-bottom: 8px;"><strong>Version Key:</strong> ${CURRENT_VERSION_KEY}</li>
-            <li style="margin-bottom: 8px;"><strong>Accent Color:</strong> ${getAccentColor()}</li>
             <li style="margin-bottom: 8px;"><strong>Plus One Icon:</strong> ${getPlusOneIcon()}</li>
-            <li><strong>Improved UI:</strong> ${getImprovedUIStatus() ? 'Enabled' : 'Disabled'}</li>
+            <li style="margin-bottom: 8px;"><strong>Improved UI:</strong> ${getImprovedUIStatus() ? 'Enabled' : 'Disabled'}</li>
+            <li><strong>Homework Date Hint:</strong> ${isHomeworkHintEnabled ? 'Enabled' : 'Disabled'}</li> 
         </ul>
         <p style="font-size: 0.9rem; color: #555;">
             <strong>Key Combo:</strong> The combination <strong>Ctrl + D</strong> (Cmd + D on Mac) is used to display this panel.
@@ -1096,13 +1064,53 @@ function replacePositiveAchievementIcons() {
     updateCustomIcons();
 }
 
-// REMOVED: parseDate, getDateStatus, injectHomeworkDateHint
+function injectHomeworkDateHint() {
+    const isEnabled = getHomeworkDateHintStatus();
+    const homeworkCards = document.querySelectorAll('.card.homework-card');
+    const hintClass = 'cc-improver-date-hint';
+
+    homeworkCards.forEach(card => {
+        let existingHint = card.querySelector(`.${hintClass}`);
+
+        if (!isEnabled) {
+            if (existingHint) existingHint.remove();
+            return;
+        }
+
+        if (existingHint) return;
+
+        const dateElement = Array.from(card.querySelectorAll('p, h6, span')).find(
+            el => el.textContent.toLowerCase().includes('due:')
+        );
+
+        if (dateElement) {
+            const fullDateText = dateElement.textContent.trim();
+            const dateMatch = fullDateText.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+            const dateText = dateMatch ? dateMatch[0] : fullDateText.replace(/due:/i, '').trim();
+
+            const cardHeader = card.querySelector('.MuiCardHeader-root');
+            if (cardHeader) {
+                const hint = document.createElement('div');
+                hint.className = hintClass;
+                hint.innerHTML = `<strong style="font-size: 0.7rem; color: #E53935; text-transform: uppercase; margin-right: 5px;">Due Date:</strong> ${dateText}`;
+                hint.style.cssText = `
+                    font-size: 0.9rem;
+                    color: #d81b60;
+                    background-color: #fce4ec;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    margin-top: 5px;
+                    display: inline-block;
+                    font-weight: 500;
+                `;
+                cardHeader.insertAdjacentElement('afterend', hint);
+            }
+        }
+    });
+}
 
 function showWelcomeModal(callback) {
     const logoUrl = getAssetUrl('customlogo.png');
-    const accentColor = getAccentColor();
-    const darkerColor = applyAccentColor.darkenColor ? applyAccentColor.darkenColor(accentColor, -10) : '#0277BD';
-
     const welcomeHtml = `
         <style>
             .cc-welcome-card {
@@ -1110,7 +1118,7 @@ function showWelcomeModal(callback) {
                 border-radius: 16px;
                 max-width: 480px;
                 padding: 40px;
-                box-shadow: 0 15px 40px ${accentColor}33;
+                box-shadow: 0 15px 40px rgba(3,155,229,0.3);
                 text-align: center;
                 font-family: Inter, Roboto, sans-serif;
                 transform: scale(0.95);
@@ -1139,11 +1147,11 @@ function showWelcomeModal(callback) {
                 margin-bottom: 20px;
                 border-radius: 0;
                 object-fit: contain;
-                border: 4px solid ${accentColor};
+                border: 4px solid ${PRIMARY_BLUE};
                 box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             }
             .cc-welcome-dismiss-btn {
-                background-color: ${accentColor};
+                background-color: ${PRIMARY_BLUE};
                 color: white;
                 border: none;
                 padding: 12px 25px;
@@ -1155,7 +1163,7 @@ function showWelcomeModal(callback) {
                 letter-spacing: 0.5px;
             }
             .cc-welcome-dismiss-btn:hover {
-                background-color: ${darkerColor};
+                background-color: #0277BD;
             }
             .cc-welcome-dismiss-btn:active {
                 transform: scale(0.98);
@@ -1164,9 +1172,9 @@ function showWelcomeModal(callback) {
         <div id="cc-welcome-modal-backdrop" class="cc-welcome-backdrop">
             <div id="cc-welcome-modal-content" class="cc-welcome-card">
                 <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-welcome-logo">
-                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${accentColor}; font-weight: 700;">Update: New Features Arrived!</h2>
+                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Update: New Features Arrived!</h2>
                 <p style="font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 30px;">
-                    We've rolled out a new update, including the ability to add <strong>Personal Notes</strong>, a <strong>Goals Tracker</strong>, set a <strong>Custom Profile Photo</strong>, and choose a new <strong>Accent Color</strong> right from the side menu.
+                    We've rolled out a new update, including the ability to add <strong>Personal Notes</strong>, a <strong>Goals Tracker</strong>, and set a <strong>Custom Profile Photo</strong> right from the side menu. Check out the new, improved UI!
                 </p>
                 <button id="cc-welcome-dismiss-btn" class="cc-welcome-dismiss-btn">
                     Got it!
@@ -1207,7 +1215,6 @@ function showWelcomeModal(callback) {
 function showReviewModal() {
     const logoUrl = getAssetUrl('customlogo.png');
     const reviewLink = 'https://chromewebstore.google.com/detail/classcharts-improver/kalmdpfngeebamgaeegkieojhbkbghoe';
-    const accentColor = getAccentColor();
 
     const reviewHtml = `
         <style>
@@ -1219,7 +1226,7 @@ function showReviewModal() {
                 box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
                 text-align: center;
                 font-family: Inter, Roboto, sans-serif;
-                border-top: 5px solid ${accentColor};
+                border-top: 5px solid ${PRIMARY_BLUE};
                 transform: scale(0.95);
                 opacity: 0;
                 transition: all 0.3s ease-out;
@@ -1279,7 +1286,7 @@ function showReviewModal() {
         <div id="cc-review-modal-backdrop" class="cc-review-backdrop">
             <div id="cc-review-modal-content" class="cc-review-card">
                 <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-review-logo">
-                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${accentColor}; font-weight: 700;">Enjoying the Improver?</h2>
+                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Enjoying the Improver?</h2>
                 <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 30px;">
                     A simple rating or review helps other students discover these useful features. Would you mind taking 30 seconds to support the extension?
                 </p>
@@ -1327,6 +1334,7 @@ function showReviewModal() {
 }
 
 function checkAndShowModals() {
+
     if (localStorage.getItem(WELCOME_SHOWN_KEY) !== 'true') {
         showWelcomeModal(() => {
 
@@ -1375,7 +1383,6 @@ function injectContactLink() {
     const searchInput = document.querySelector('input[placeholder="Search by teacher name"]');
     const searchInputContainer = searchInput ? searchInput.closest('.MuiInputBase-root.MuiOutlinedInput-root') : null;
     const injectedClass = 'cc-improver-contact-link';
-    const accentColor = getAccentColor();
 
     if (searchInputContainer && !document.querySelector('.' + injectedClass)) {
         const linkHtml = `
@@ -1385,7 +1392,7 @@ function injectContactLink() {
                 font-size: 0.85rem;
                 font-family: inherit;
             ">
-                <a href="mailto:hi.opticflowstudios@gmail.com" style="color: ${accentColor}; text-decoration: none; font-weight: 500; transition: color 0.2s;">
+                <a href="mailto:hi.opticflowstudios@gmail.com" style="color: ${PRIMARY_BLUE}; text-decoration: none; font-weight: 500; transition: color 0.2s;">
                     Contact ClassCharts Improver Extension
                 </a>
             </div>
@@ -1475,13 +1482,12 @@ function injectAnnouncementsDescription() {
 function injectLoginAlert() {
     const targetDiv = document.querySelector('.box');
     const injectedClass = 'cc-improver-login-alert';
-    const accentColor = getAccentColor();
 
     if (targetDiv && !targetDiv.nextElementSibling?.classList.contains(injectedClass)) {
         const alertHtml = `
             <div class="${injectedClass}" style="
                 background-color: #e3f2fd;
-                border-left: 4px solid ${accentColor};
+                border-left: 4px solid ${PRIMARY_BLUE};
                 color: #01579B;
                 padding: 16px;
                 margin-top: 20px;
@@ -1516,7 +1522,7 @@ function showRefreshTweaksModal() {
         <div style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
             <p>This action will reload the page to restart the ClassCharts Improver extension.</p>
             <p style="margin-top: 10px;">This is useful if you notice any custom tweaks (like icons, notes, or layout changes) not appearing correctly on the current page.</p>
-            <p style="margin-top: 15px; font-weight: 600; color: ${OVERDUE_COLOR};">⚠️ Any unsaved work on the ClassCharts page itself (e.g., editing homework) will be lost.</p>
+            <p style="margin-top: 15px; font-weight: 600; color: #E53935;">⚠️ Any unsaved work on the ClassCharts page itself (e.g., editing homework) will be lost.</p>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
             <button id="cc-refresh-cancel-btn" class="cc-notes-button cc-notes-cancel-btn">Cancel</button>
@@ -1555,73 +1561,13 @@ function injectRefreshTweaksButton() {
     }
 }
 
-function showLoadingModal() {
-    // Only show on first load, not subsequent reloads/pushes in the same session
-    if (sessionStorage.getItem(SESSION_LOADER_SHOWN_KEY) === 'true' || window.location.pathname.endsWith('/student/login')) {
-        return () => {}; // Return a no-op function if already shown or on login page
-    }
 
-    const accentColor = getAccentColor();
-
-    const modalHtml = `
-        <div id="cc-loading-modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.95); z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s ease-out;">
-            <div style="
-                background-color: white;
-                border-radius: 12px;
-                padding: 40px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-                max-width: 400px;
-                width: 90%;
-                text-align: center;
-                border-top: 5px solid ${accentColor};
-                transition: border-top-color 0.5s;
-            ">
-                <h2 style="font-size: 1.5rem; font-weight: 700; color: #212121; margin-bottom: 25px;">Please Wait...</h2>
-                <div style="width: 100%; height: 8px; background-color: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden;">
-                    <div id="cc-loading-progress" style="width: 0%; height: 100%; background-color: ${accentColor}; transition: width 0.3s ease-in-out, background-color 0.5s;"></div>
-                </div>
-                <p style="font-size: 1rem; color: #555;">Loading ClassCharts and Tweaks</p>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    const progress = document.getElementById('cc-loading-progress');
-    const backdrop = document.getElementById('cc-loading-modal-backdrop');
-
-    let percent = 0;
-    const interval = setInterval(() => {
-        if (percent < 90) {
-            percent += 10;
-            progress.style.width = `${percent}%`;
-        }
-    }, 300);
-
-    const finishLoading = () => {
-        if (!backdrop || !backdrop.parentElement) return; // Already removed
-        clearInterval(interval);
-        progress.style.width = '100%';
-
-        setTimeout(() => {
-            backdrop.style.opacity = '0';
-            sessionStorage.setItem(SESSION_LOADER_SHOWN_KEY, 'true');
-            setTimeout(() => {
-                backdrop.remove();
-            }, 500);
-        }, 800);
-    };
-
-    return finishLoading;
-}
-
-
-function initObserver(finishLoadingCallback) {
+function initObserver() {
     let attempts = 0;
     const maxAttempts = 30;
 
     replaceClassChartsLogo();
     applyImprovedUI(getImprovedUIStatus());
-    applyAccentColor(getAccentColor()); // Apply color immediately
     applyCustomProfilePhoto();
     updateCustomIcons();
 
@@ -1630,7 +1576,7 @@ function initObserver(finishLoadingCallback) {
 
         updateDefaultIcons();
         updateCustomIcons();
-        // REMOVED: injectHomeworkDateHint();
+        injectHomeworkDateHint();
 
         if (!menuInjected) {
             if (createMenuItem()) {
@@ -1645,13 +1591,6 @@ function initObserver(finishLoadingCallback) {
         injectMessagesPlaceholderContent();
         injectAnnouncementsDescription();
         injectRefreshTweaksButton();
-        
-        // Signal loading completion after initial setup has run once successfully
-        if (attempts === 1 && finishLoadingCallback) {
-            finishLoadingCallback();
-            finishLoadingCallback = null;
-        }
-
 
         if (attempts >= maxAttempts) {
             clearInterval(interval);
@@ -1660,12 +1599,7 @@ function initObserver(finishLoadingCallback) {
     }, 500);
 }
 
-// --- Initial Execution ---
-const finishLoading = showLoadingModal(); // Setup loading modal
-
 injectLoginAlert();
 setupKeyComboListener();
 console.warn("ClassCharts Improver is active. This extension modifies the site's default behavior and appearance. For more details and troubleshooting information, press Ctrl+D (Cmd+D on Mac) to open the developer info panel.");
-
-// Pass the callback to the observer to dismiss the loading modal after initial load
-initObserver(finishLoading);
+initObserver();
