@@ -21,7 +21,7 @@ If you discover a security vulnerability, **please do not open a public issue.**
 
 ### Pull Requests
 1.  **Fork** the repository and create your branch from `main`.
-2.  **Develop** your changes. Please adhere to the [Coding Standards](#coding-standards) below.
+2.  **Develop** your changes. Please adhere to the [Coding Standards](#-coding-standards) below.
 3.  **Test** your changes locally by loading the unpacked extension in your browser.
 4.  **Submit** a Pull Request with a detailed description of your changes.
 
