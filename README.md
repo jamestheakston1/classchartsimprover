@@ -28,8 +28,7 @@ Download from [Chrome Web Store](https://chromewebstore.google.com/detail/classc
 6. Use ClassCharts like usual, but with the new features!
 
 #### Option 3 (Clone):
-
-1. Clone using `gh repo clone jamestheakston1/classchartsimprover`
+1. Clone using `git clone jamestheakston1/classchartsimprover`
 
 
 
