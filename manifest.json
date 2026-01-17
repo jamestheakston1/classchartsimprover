@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ClassCharts Improver",
   "description": "Adds features to ClassCharts.",
-  "version": "5.4",
+  "version": "5.5",
   "background": {
     "service_worker": "service-worker.js"
   },
@@ -12,7 +12,7 @@
       "matches": [
         "https://www.classcharts.com/mobile/student*",
         "https://www.classcharts.com/student/login",
-        "https://www.classcharts.com/student/*" 
+        "https://www.classcharts.com/student/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
@@ -27,7 +27,9 @@
         "assets/icons/icon-16.png",
         "assets/icons/icon-48.png",
         "assets/icons/icon-128.png",
-        "assets/feather/*" 
+        "assets/feather/*",
+        "assets/*.html",
+        "assets/*.js"
       ],
       "matches": ["https://www.classcharts.com/*"]
     }
