@@ -1,32 +1,26 @@
 const NOTES_STORAGE_KEY = 'classcharts_personal_notes';
 const GOALS_STORAGE_KEY = 'classcharts_personal_goals';
 const PROFILE_PHOTO_STORAGE_KEY = 'classcharts_custom_profile_photo';
-
 const CURRENT_VERSION_KEY = 'classcharts_improver_version_v5_4';
 const WELCOME_SHOWN_KEY = `classcharts_improver_welcome_shown_${CURRENT_VERSION_KEY}`;
 const REVIEW_SHOWN_KEY = `classcharts_improver_review_shown_${CURRENT_VERSION_KEY}`;
-
 const IMPROVED_UI_KEY = 'classcharts_improver_improved_ui_enabled';
 const PLUS_ONE_ICON_KEY = 'classcharts_improver_plus_one_icon';
 const HOMEWORK_DATE_HINT_KEY = 'classcharts_improver_homework_date_hint_enabled';
-
+const HOMEWORK_REDESIGN_KEY = 'classcharts_improver_homework_redesign_enabled';
 const MESSAGE_MENU_SELECTOR = '.MuiButtonBase-root.MuiListItem-root.desktop-drawer-pupil-menu-item:last-child';
 const PRIMARY_BLUE = '#039BE5';
 const LIGHT_GREY = '#f5f5f5';
-
 const POSITIVE_GREEN = '#4CAF50';
-
 const NOTES_ICON_FILE = 'edit-3.svg';
 const GOALS_ICON_FILE = 'target.svg';
-const GAMES_ICON_FILE = 'play.svg';
 const INFO_ICON_FILE = 'info.svg';
 const CAMERA_ICON_FILE = 'camera.svg';
 const SETTINGS_ICON_FILE = 'settings.svg';
 const POSITIVE_ICON_FILE = 'smile.svg';
-
+const MONITOR_ICON_FILE = 'monitor.svg';
 const PROFILE_IMAGE_DEFAULT_SRC_PATTERN = 'faces/';
 const CLASSCHARTS_DEFAULT_PHOTO_URL = 'https://195ec04504ea0272771e-7c2c6dacbab7a2b2d574b53c70c1fe31.ssl.cf3.rackcdn.com/29.67.5-52f0ea22/img/faces/default.png';
-
 const DEFAULT_MENU_MAPPING = {
     0: 'home.svg',
     1: 'share-2.svg',
@@ -38,7 +32,6 @@ const DEFAULT_MENU_MAPPING = {
     7: 'alert-triangle.svg',
     8: 'message-square.svg'
 };
-
 const DEFAULT_MENU_TEXT_MAPPING = {
     0: 'Overview',
     2: 'Homework',
@@ -101,18 +94,24 @@ function setHomeworkDateHintStatus(enabled) {
     localStorage.setItem(HOMEWORK_DATE_HINT_KEY, enabled ? 'true' : 'false');
 }
 
+function getHomeworkRedesignStatus() {
+    return localStorage.getItem(HOMEWORK_REDESIGN_KEY) === 'true';
+}
+
+function setHomeworkRedesignStatus(enabled) {
+    localStorage.setItem(HOMEWORK_REDESIGN_KEY, enabled ? 'true' : 'false');
+}
+
 function updateAllMenuIcons() {
     updateDefaultIcons();
     const menuItems = document.querySelectorAll('.desktop-drawer-pupil-menu-item');
     const noteItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Personal Notes');
     const goalsItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Goals Tracker');
-    const gamesItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Games');
     const settingsHubItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Settings & Customization');
     const aboutItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'About');
 
     if (noteItem) replaceIcon(noteItem, NOTES_ICON_FILE);
     if (goalsItem) replaceIcon(goalsItem, GOALS_ICON_FILE);
-    if (gamesItem) replaceIcon(gamesItem, GAMES_ICON_FILE);
     if (settingsHubItem) replaceIcon(settingsHubItem, SETTINGS_ICON_FILE);
     if (aboutItem) replaceIcon(aboutItem, INFO_ICON_FILE);
 }
@@ -163,12 +162,282 @@ function applyImprovedUI(enabled) {
             .cc-improver-improved-ui button[class*="calendar-"]:hover {
                 background-color: #0277BD !important;
             }
+            .cc-new-badge {
+                background-color: #f44336;
+                color: white;
+                font-size: 0.6rem;
+                padding: 1px 5px;
+                border-radius: 4px;
+                margin-left: 6px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: inline-block;
+                vertical-align: middle;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                white-space: nowrap;
+            }
+
+            @keyframes rainbow-text {
+                0% { color: #ff0000; }
+                17% { color: #ff8800; }
+                33% { color: #ffff00; }
+                50% { color: #00ff00; }
+                67% { color: #0000ff; }
+                84% { color: #8800ff; }
+                100% { color: #ff0000; }
+            }
+
+            #cc-improver-settings-hub-menu-item .MuiListItemText-primary {
+                animation: rainbow-text 5s infinite linear;
+                font-weight: bold !important;
+            }
         `;
         document.head.appendChild(style);
     } else {
         body.classList.remove('cc-improver-improved-ui');
         const style = document.getElementById('cc-improver-ui-styles');
         if (style) style.remove();
+    }
+}
+
+function applyHomeworkRedesign() {
+    const enabled = getHomeworkRedesignStatus();
+    const existingStyle = document.getElementById('cc-homework-redesign-styles');
+    
+    if (enabled) {
+        if (existingStyle) return;
+        const style = document.createElement('style');
+        style.id = 'cc-homework-redesign-styles';
+        style.textContent = `
+            /* --- MAIN PAGE LAYOUT --- */
+            .homework-page {
+                background-color: #f8fafc !important;
+                padding: 32px !important;
+            }
+
+            /* --- META BADGES (Top Row Redesign) --- */
+            /* Target any div containing 'meta-badge' to avoid JSS number issues */
+            div[class*="meta-badge"] {
+                background-color: white !important;
+                border-radius: 12px !important;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06) !important;
+                border: 1px solid #e2e8f0 !important;
+                padding: 20px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+                height: auto !important;
+                min-height: 100px !important;
+                margin: 0 !important;
+                position: relative !important;
+                overflow: hidden !important;
+                transition: transform 0.2s !important;
+            }
+
+            div[class*="meta-badge"]:hover {
+                transform: translateY(-2px) !important;
+            }
+
+            /* The Number inside the badge */
+            div[class*="meta-badge"] b {
+                font-size: 2.5rem !important;
+                line-height: 1 !important;
+                color: #1e293b !important;
+                margin-bottom: 8px !important;
+                display: block !important;
+                font-weight: 800 !important;
+            }
+
+            /* The Text inside the badge */
+            div[class*="meta-badge"] span {
+                font-size: 0.85rem !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+                font-weight: 600 !important;
+                color: #64748b !important;
+            }
+
+            /* Add colored accents based on type */
+            .meta-badge-tasks-due { border-left: 5px solid ${PRIMARY_BLUE} !important; }
+            .meta-badge-tasks-completed { border-left: 5px solid ${POSITIVE_GREEN} !important; }
+            .meta-badge-tasks-remaining { border-left: 5px solid #f44336 !important; }
+            
+            /* The 'Requires Submission' specific styling */
+            .meta-badge-requires-submission {
+                background-color: white !important;
+                border-left: 5px solid #00BCD4 !important;
+                align-items: center !important;
+                flex-direction: row !important;
+            }
+            
+            /* Hide the ugly checkbox background in meta badge */
+            .meta-badge-requires-submission .MuiIconButton-root {
+                padding: 12px !important;
+                margin-right: 10px !important;
+                background: #e0f7fa !important;
+                border-radius: 8px !important;
+                color: #006064 !important;
+            }
+
+            /* --- HOMEWORK GRID --- */
+            .homework-page > div:nth-child(2) {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+                gap: 20px !important;
+                margin-bottom: 40px !important;
+            }
+            
+            /* --- HOMEWORK DETAILS MODAL REDESIGN --- */
+            /* This targets the modal container */
+            .MuiDialog-paper {
+                border-radius: 16px !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+                overflow: visible !important;
+            }
+
+            .homework-details {
+                padding: 10px !important;
+            }
+
+            /* Header Section */
+            .homework-details h4 { /* Title */
+                font-size: 1.5rem !important;
+                font-weight: 800 !important;
+                color: #111827 !important;
+                margin-bottom: 8px !important;
+                line-height: 1.3 !important;
+            }
+
+            .homework-details h5 { /* Teacher/Subject */
+                font-size: 0.95rem !important;
+                color: #6b7280 !important;
+                font-weight: 500 !important;
+                border-bottom: 1px solid #e5e7eb !important;
+                padding-bottom: 15px !important;
+                margin-bottom: 20px !important;
+            }
+
+            /* The 'To Do' / Status Badge in Modal */
+            .homework-group-header-badge {
+                border-radius: 999px !important;
+                padding: 6px 16px !important;
+                font-size: 0.75rem !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.05em !important;
+                display: inline-block !important;
+                margin-bottom: 15px !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+
+            /* Date Grid in Modal */
+            .homework-details > div:nth-of-type(2) {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+                background: #f8fafc !important;
+                padding: 16px !important;
+                border-radius: 12px !important;
+                margin-bottom: 20px !important;
+                border: 1px solid #f1f5f9 !important;
+            }
+            
+            .homework-details > div:nth-of-type(2) div {
+                font-size: 0.9rem !important;
+                color: #475569 !important;
+            }
+            
+            .homework-details > div:nth-of-type(2) b {
+                color: #1e293b !important;
+                display: block !important;
+                font-size: 0.75rem !important;
+                text-transform: uppercase !important;
+                opacity: 0.7 !important;
+                margin-bottom: 4px !important;
+            }
+
+            /* Description Box */
+            .homework-details p {
+                font-size: 1rem !important;
+                line-height: 1.6 !important;
+                color: #334155 !important;
+                margin-bottom: 12px !important;
+            }
+            
+            /* Completed Checkbox container */
+            .homework-details fieldset {
+                margin: 20px 0 !important;
+                padding: 15px !important;
+                border: 2px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                background: white !important;
+                transition: border-color 0.2s !important;
+            }
+            
+            .homework-details fieldset:hover {
+                border-color: ${PRIMARY_BLUE} !important;
+            }
+
+            /* Links Section */
+            .homework-details ul a {
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8px !important;
+                margin-top: 8px !important;
+                transition: all 0.2s !important;
+            }
+            
+            .homework-details ul a:hover {
+                background-color: #f0f9ff !important;
+                border-color: ${PRIMARY_BLUE} !important;
+                color: ${PRIMARY_BLUE} !important;
+            }
+
+            /* --- CALENDAR/GENERAL FIXES --- */
+            .calendar-header {
+                background: transparent !important;
+                padding: 12px 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin-bottom: 24px !important;
+            }
+
+            .calendar-header-open-button {
+                border-radius: 10px !important;
+                background-color: ${PRIMARY_BLUE} !important;
+                padding: 12px !important;
+            }
+            
+            /* General Card Styles */
+            .homework-card {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 16px !important;
+                margin-bottom: 20px !important;
+            }
+
+            .homework-card:hover {
+                transform: translateY(-4px) !important;
+                box-shadow: 0 12px 24px -8px rgba(0,0,0,0.15) !important;
+                border-color: ${PRIMARY_BLUE} !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        const calendarIconContainer = document.querySelector('.calendar-header .MuiButton-label');
+        if (calendarIconContainer && !calendarIconContainer.querySelector('.cc-feather-icon')) {
+            calendarIconContainer.innerHTML = `<img src="${getAssetUrl('calendar.svg')}" class="cc-feather-icon" style="width:20px; height:20px; filter:brightness(0) invert(1);">`;
+        }
+
+        const expandButtons = document.querySelectorAll('.expand-button .MuiIconButton-label');
+        expandButtons.forEach(btn => {
+            if (!btn.querySelector('.cc-feather-icon')) {
+                btn.innerHTML = `<img src="${getAssetUrl('chevron-down.svg')}" class="cc-feather-icon" style="width:24px; height:24px; opacity:0.6;">`;
+            }
+        });
+    } else {
+        if (existingStyle) existingStyle.remove();
     }
 }
 
@@ -265,12 +534,6 @@ function createMenuItem() {
         showGoalsModal();
     }, 'cc-improver-goals-menu-item');
 
-    const gamesItem = createItem('Games', GAMES_ICON_FILE, (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        showGamesModal();
-    }, 'cc-improver-games-menu-item');
-
     const settingsHubItem = createItem('Settings & Customization', SETTINGS_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -294,12 +557,36 @@ function createMenuItem() {
 
     messagesItem.after(notesItem);
     notesItem.after(goalsItem);
-    goalsItem.after(gamesItem);
     notesItem.insertAdjacentHTML('beforebegin', improverHeaderHtml);
 
-    gamesItem.after(settingsHubItem);
-    settingsHubItem.after(aboutItem);
+    goalsItem.after(settingsHubItem);
+    
+    // Configure badge inside settings item
+    settingsHubItem.style.position = 'relative';
+    settingsHubItem.style.overflow = 'visible';
 
+    const badge = document.createElement('div');
+    badge.className = 'cc-improver-new-func-label';
+    badge.textContent = 'New Functionality';
+    badge.style.cssText = `
+        position: absolute;
+        top: -6px;
+        right: 10px;
+        background-color: ${PRIMARY_BLUE};
+        color: white;
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+        pointer-events: none;
+    `;
+    settingsHubItem.appendChild(badge);
+
+    settingsHubItem.after(aboutItem);
     aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
 
     return true;
@@ -606,6 +893,23 @@ function showAllSettingsModal() {
                 More Appearance Settings
                 <span style="font-size: 1.5rem; line-height: 1;">&rarr;</span>
             </button>
+            <button id="cc-open-ui-tweaks-modal" class="cc-settings-hub-button" style="
+                background-color: #FFF3E0;
+                color: #EF6C00;
+                border: 1px solid #EF6C00;
+                padding: 15px;
+                border-radius: 8px;
+                font-weight: 600;
+                text-align: left;
+                cursor: pointer;
+                transition: background-color 0.2s, box-shadow 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            ">
+                UI Tweaks
+                <span style="font-size: 1.5rem; line-height: 1;">&rarr;</span>
+            </button>
         </div>
         <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
             <button id="cc-settings-hub-close-btn" class="cc-notes-button cc-notes-cancel-btn">Close</button>
@@ -628,6 +932,51 @@ function showAllSettingsModal() {
     document.getElementById('cc-open-appearance-modal').addEventListener('click', () => {
         closeModal();
         showAppearanceSettingsModal();
+    });
+
+    document.getElementById('cc-open-ui-tweaks-modal').addEventListener('click', () => {
+        closeModal();
+        showUITweaksModal();
+    });
+}
+
+function showUITweaksModal() {
+    const isRedesignEnabled = getHomeworkRedesignStatus();
+
+    const bodyHtml = `
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <p style="font-size: 0.9rem; color: #666;">Fine-tune the look and feel of the student portal.</p>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; transition: border-color 0.2s;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-weight: 600; color: #111827;">Homework Tab Redesign</span>
+                    <span style="font-size: 0.75rem; color: #6b7280;">Enable a cleaner, more modern layout for homework cards.</span>
+                </div>
+                <label class="cc-switch">
+                    <input type="checkbox" id="cc-homework-redesign-toggle" ${isRedesignEnabled ? 'checked' : ''}>
+                    <span class="cc-slider round"></span>
+                </label>
+            </div>
+            
+            <div style="padding: 10px 0;">
+                <div class="cc-improver-new-func-label" style="font-size: 0.75rem; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; margin-bottom: 12px;">New Functionality</div>
+                <p style="font-size: 0.85rem; color: #4b5563;">Additional customization options are added here as they are developed.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 32px;">
+            <button id="cc-ui-tweaks-close-btn" class="cc-notes-button cc-notes-save-btn">Done</button>
+        </div>
+    `;
+
+    const { closeModal } = createBaseModal('cc-ui-tweaks', 'UI Tweaks', bodyHtml, '450px');
+    
+    document.getElementById('cc-ui-tweaks-close-btn').addEventListener('click', closeModal);
+    
+    document.getElementById('cc-homework-redesign-toggle').addEventListener('change', (e) => {
+        const enabled = e.target.checked;
+        setHomeworkRedesignStatus(enabled);
+        applyHomeworkRedesign();
     });
 }
 
@@ -780,49 +1129,36 @@ function showGoalsModal() {
     renderGoals();
 }
 
-function showGamesModal() {
-    const bodyHtml = `
-        <div id="cc-games-content">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                <div id="cc-game-card-mini-car" style="
-                    background-color: white;
-                    border: 1px solid #ddd;
-                    border-radius: 12px;
-                    padding: 20px;
-                    cursor: pointer;
-                    transition: transform 0.2s, box-shadow 0.2s;
-                    text-align: center;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                " onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.05)';">
-                    <img src="${getAssetUrl('play.svg')}" style="width: 48px; height: 48px; margin-bottom: 12px; color: ${PRIMARY_BLUE};">
-                    <h3 style="font-weight: 700; margin: 0 0 8px 0;">Mini Car Game</h3>
-                    <p style="font-size: 0.9rem; color: #666; margin: 0;">A simple browser-based car racing game.</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const { closeModal } = createBaseModal('cc-games', 'Games', bodyHtml, '600px');
-
-    document.getElementById('cc-game-card-mini-car').addEventListener('click', () => {
-        const body = document.querySelector('.cc-games-modal-body');
-        const gameUrl = getAssetUrl('mini_car_game.html');
-        body.innerHTML = `
-            <div style="width: 100%; height: 450px; background-color: #000; border-radius: 8px; overflow: hidden;">
-                <iframe src="${gameUrl}" style="width: 100%; height: 100%; border: none;"></iframe>
-            </div>
-            <p style="margin-top: 15px; font-size: 0.85rem; color: #666; text-align: center;">
-                Credit: TechGeekUnited (<a href="https://github.com/TechGeekUnited/Offline-HTML-Games/blob/main/Games/mini_car_game.html" target="_blank" style="color: ${PRIMARY_BLUE}; text-decoration: none;">GitHub Source</a>)
-            </p>
-            <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button id="cc-games-back-btn" class="cc-notes-button cc-notes-cancel-btn">Back to Games</button>
-            </div>
-        `;
-        document.getElementById('cc-games-back-btn').addEventListener('click', () => {
-            closeModal();
-            showGamesModal();
+function clearCompleted() {
+    const goals = loadGoals();
+    const filtered = goals.filter(g => !g.completed);
+    saveGoals(filtered);
+    const goalsList = document.getElementById('cc-goal-list');
+    if (goalsList) {
+        goalsList.innerHTML = '';
+        filtered.forEach(goal => {
+            const listItem = document.createElement('li');
+            listItem.className = `cc-goal-item ${goal.completed ? 'completed' : ''}`;
+            listItem.dataset.id = goal.id;
+            listItem.innerHTML = `
+                <input type="checkbox" class="cc-goal-checkbox" ${goal.completed ? 'checked' : ''} data-id="${goal.id}">
+                <span class="cc-goal-text">${goal.text}</span>
+            `;
+            goalsList.appendChild(listItem);
         });
-    });
+        goalsList.querySelectorAll('.cc-goal-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const goals = loadGoals();
+                const goalIndex = goals.findIndex(g => g.id === e.target.dataset.id);
+                if (goalIndex !== -1) {
+                    goals[goalIndex].completed = !goals[goalIndex].completed;
+                    goals[goalIndex].createdAt = Date.now();
+                    saveGoals(goals);
+                    clearCompleted();
+                }
+            });
+        });
+    }
 }
 
 function showAboutModal() {
@@ -1260,60 +1596,7 @@ function showReviewModal() {
             }
             .cc-review-logo {
                 width: 100px;
-                height: 100px;
-                margin-bottom: 20px;
-                border-radius: 16px;
-                object-fit: contain;
-            }
-            .cc-review-btn-primary {
-                background-color: ${POSITIVE_GREEN};
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-                text-transform: uppercase;
-                transition: background-color 0.2s, transform 0.1s;
-                letter-spacing: 0.5px;
-            }
-            .cc-review-btn-primary:hover {
-                background-color: #388E3C;
-            }
-            .cc-review-btn-secondary {
-                background-color: #e0e0e0;
-                color: #333;
-                border: none;
-                padding: 10px 15px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 500;
-                transition: background-color 0.2s;
-            }
-            .cc-review-btn-secondary:hover {
-                background-color: #bdbdbd;
-            }
-        </style>
-        <div id="cc-review-modal-backdrop" class="cc-review-backdrop">
-            <div id="cc-review-modal-content" class="cc-review-card">
-                <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-review-logo">
-                <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Enjoying the Improver?</h2>
-                <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 30px;">
-                    A simple rating or review helps other students discover these useful features. Would you mind taking 30 seconds to support the extension?
-                </p>
-                <div style="display: flex; justify-content: center; gap: 15px;">
-                    <button id="cc-review-later-btn" class="cc-review-btn-secondary">
-                        Maybe Later
-                    </button>
-                    <a href="${reviewLink}" target="_blank" id="cc-review-link-btn" style="text-decoration: none;">
-                        <button id="cc-review-dismiss-btn" class="cc-review-btn-primary">
-                            Leave a Review
-                        </button>
-                    </a>
-                </div>
-            </div>
-        </div>
-    `;
+                height: 100px; margin-bottom: 20px; border-radius: 16px; object-fit: contain; } .cc-review-btn-primary { background-color: ${POSITIVE_GREEN}; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; text-transform: uppercase; transition: background-color 0.2s, transform 0.1s; letter-spacing: 0.5px; } .cc-review-btn-primary:hover { background-color: #388E3C; } .cc-review-btn-secondary { background-color: #e0e0e0; color: #333; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background-color 0.2s; } .cc-review-btn-secondary:hover { background-color: #bdbdbd; } </style> <div id="cc-review-modal-backdrop" class="cc-review-backdrop"> <div id="cc-review-modal-content" class="cc-review-card"> <img src="${logoUrl}" alt="ClassCharts Improver Logo" class="cc-review-logo"> <h2 style="font-size: 1.75rem; margin-bottom: 10px; color: ${PRIMARY_BLUE}; font-weight: 700;">Enjoying the Improver?</h2> <p style="font-size: 1rem; color: #444; line-height: 1.5; margin-bottom: 30px;"> A simple rating or review helps other students discover these useful features. Would you mind taking 30 seconds to support the extension? </p> <div style="display: flex; justify-content: center; gap: 15px;"> <button id="cc-review-later-btn" class="cc-review-btn-secondary"> Maybe Later </button> <a href="${reviewLink}" target="_blank" id="cc-review-link-btn" style="text-decoration: none;"> <button id="cc-review-dismiss-btn" class="cc-review-btn-primary"> Leave a Review </button> </a> </div> </div> </div> `;
     document.body.insertAdjacentHTML('beforeend', reviewHtml);
     const backdrop = document.getElementById('cc-review-modal-backdrop');
     const content = document.getElementById('cc-review-modal-content');
@@ -1567,6 +1850,7 @@ function initObserver() {
 
     replaceClassChartsLogo();
     applyImprovedUI(getImprovedUIStatus());
+    applyHomeworkRedesign();
     applyCustomProfilePhoto();
     updateCustomIcons();
 
@@ -1576,6 +1860,7 @@ function initObserver() {
         updateDefaultIcons();
         updateCustomIcons();
         injectHomeworkDateHint();
+        applyHomeworkRedesign();
 
         if (!menuInjected) {
             if (createMenuItem()) {
