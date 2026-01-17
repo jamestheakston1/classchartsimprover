@@ -18,6 +18,7 @@ const POSITIVE_GREEN = '#4CAF50';
 
 const NOTES_ICON_FILE = 'edit-3.svg';
 const GOALS_ICON_FILE = 'target.svg';
+const GAMES_ICON_FILE = 'play.svg';
 const INFO_ICON_FILE = 'info.svg';
 const CAMERA_ICON_FILE = 'camera.svg';
 const SETTINGS_ICON_FILE = 'settings.svg';
@@ -105,22 +106,20 @@ function updateAllMenuIcons() {
     const menuItems = document.querySelectorAll('.desktop-drawer-pupil-menu-item');
     const noteItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Personal Notes');
     const goalsItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Goals Tracker');
+    const gamesItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Games');
     const settingsHubItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Settings & Customization');
     const aboutItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'About');
-    // const photoItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'Upload Custom Profile Photo'); // Removed
-    // const settingsItem = Array.from(menuItems).find(item => item.querySelector('.MuiListItemText-primary')?.textContent === 'More Appearance Settings'); // Removed
 
     if (noteItem) replaceIcon(noteItem, NOTES_ICON_FILE);
     if (goalsItem) replaceIcon(goalsItem, GOALS_ICON_FILE);
-    if (settingsHubItem) replaceIcon(settingsHubItem, SETTINGS_ICON_FILE); // New
+    if (gamesItem) replaceIcon(gamesItem, GAMES_ICON_FILE);
+    if (settingsHubItem) replaceIcon(settingsHubItem, SETTINGS_ICON_FILE);
     if (aboutItem) replaceIcon(aboutItem, INFO_ICON_FILE);
-    // if (photoItem) replaceIcon(photoItem, CAMERA_ICON_FILE); // Removed
-    // if (settingsItem) replaceIcon(settingsItem, SETTINGS_ICON_FILE); // Removed
 }
 
 const getAssetUrl = (filename) => {
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL && chrome.runtime.id) {
-        if (filename === 'customlogo.png' || filename === 'threadtutorial.png') {
+        if (filename === 'customlogo.png' || filename === 'threadtutorial.png' || filename === 'mini_car_game.html') {
              return chrome.runtime.getURL(`assets/${filename}`);
         }
         return chrome.runtime.getURL(`assets/feather/${filename}`);
@@ -266,7 +265,12 @@ function createMenuItem() {
         showGoalsModal();
     }, 'cc-improver-goals-menu-item');
 
-    // NEW: Unified Settings Item
+    const gamesItem = createItem('Games', GAMES_ICON_FILE, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showGamesModal();
+    }, 'cc-improver-games-menu-item');
+
     const settingsHubItem = createItem('Settings & Customization', SETTINGS_ICON_FILE, (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -279,20 +283,6 @@ function createMenuItem() {
         showAboutModal();
     }, 'cc-improver-about-menu-item');
 
-    /* REMOVED: Individual settings items
-    const profilePhotoItem = createItem('Upload Custom Profile Photo', CAMERA_ICON_FILE, (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        showProfilePhotoModal();
-    }, 'cc-improver-custom-photo-menu-item');
-
-    const settingsItem = createItem('More Appearance Settings', SETTINGS_ICON_FILE, (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        showAppearanceSettingsModal();
-    }, 'cc-improver-settings-menu-item');
-    */
-
     const improverHeaderHtml = `
         <div class="cc-improver-header" style="padding: 16px; padding-bottom: 8px; font-weight: 700; color: rgba(0, 0, 0, 0.54); font-size: 0.875rem; text-transform: uppercase;">
             ClassCharts Improver
@@ -300,41 +290,17 @@ function createMenuItem() {
         <div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>
     `;
 
-    /* REMOVED: Appearance header
-    const appearanceHeaderHtml = `
-        <div class="cc-improver-header cc-improver-appearance-header" style="padding: 16px; padding-bottom: 8px; font-weight: 700; color: rgba(0, 0, 0, 0.54); font-size: 0.875rem; text-transform: uppercase;">
-            Appearance
-        </div>
-        <div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>
-    `;
-    */
-
     const finalDividerHtml = `<div class="cc-improver-divider" style="height: 1px; background-color: rgba(0, 0, 0, 0.12); margin: 0 16px;"></div>`;
 
     messagesItem.after(notesItem);
     notesItem.after(goalsItem);
+    goalsItem.after(gamesItem);
     notesItem.insertAdjacentHTML('beforebegin', improverHeaderHtml);
 
-    // NEW INSERTION: goals -> settingsHub -> about -> divider
-    goalsItem.after(settingsHubItem);
+    gamesItem.after(settingsHubItem);
     settingsHubItem.after(aboutItem);
 
-    // Final Divider after About
     aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
-
-
-    /* REMOVED: Old insertion logic
-    goalsItem.after(aboutItem);
-
-    aboutItem.insertAdjacentHTML('afterend', finalDividerHtml);
-    const firstDividerAfterAbout = aboutItem.nextElementSibling;
-    firstDividerAfterAbout.insertAdjacentHTML('afterend', appearanceHeaderHtml);
-    const appearanceHeader = firstDividerAfterAbout.nextElementSibling;
-
-    appearanceHeader.insertAdjacentElement('afterend', profilePhotoItem);
-    profilePhotoItem.insertAdjacentElement('afterend', settingsItem);
-    settingsItem.insertAdjacentHTML('afterend', finalDividerHtml);
-    */
 
     return true;
 }
@@ -814,6 +780,51 @@ function showGoalsModal() {
     renderGoals();
 }
 
+function showGamesModal() {
+    const bodyHtml = `
+        <div id="cc-games-content">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                <div id="cc-game-card-mini-car" style="
+                    background-color: white;
+                    border: 1px solid #ddd;
+                    border-radius: 12px;
+                    padding: 20px;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    text-align: center;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                " onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.05)';">
+                    <img src="${getAssetUrl('play.svg')}" style="width: 48px; height: 48px; margin-bottom: 12px; color: ${PRIMARY_BLUE};">
+                    <h3 style="font-weight: 700; margin: 0 0 8px 0;">Mini Car Game</h3>
+                    <p style="font-size: 0.9rem; color: #666; margin: 0;">A simple browser-based car racing game.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const { closeModal } = createBaseModal('cc-games', 'Games', bodyHtml, '600px');
+
+    document.getElementById('cc-game-card-mini-car').addEventListener('click', () => {
+        const body = document.querySelector('.cc-games-modal-body');
+        const gameUrl = getAssetUrl('mini_car_game.html');
+        body.innerHTML = `
+            <div style="width: 100%; height: 450px; background-color: #000; border-radius: 8px; overflow: hidden;">
+                <iframe src="${gameUrl}" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+            <p style="margin-top: 15px; font-size: 0.85rem; color: #666; text-align: center;">
+                Credit: TechGeekUnited (<a href="https://github.com/TechGeekUnited/Offline-HTML-Games/blob/main/Games/mini_car_game.html" target="_blank" style="color: ${PRIMARY_BLUE}; text-decoration: none;">GitHub Source</a>)
+            </p>
+            <div style="display: flex; justify-content: center; margin-top: 20px;">
+                <button id="cc-games-back-btn" class="cc-notes-button cc-notes-cancel-btn">Back to Games</button>
+            </div>
+        `;
+        document.getElementById('cc-games-back-btn').addEventListener('click', () => {
+            closeModal();
+            showGamesModal();
+        });
+    });
+}
+
 function showAboutModal() {
     const bodyHtml = `
         <p style="margin-bottom: 20px; font-size: 1rem; color: #444;">This project enhances the ClassCharts student portal by adding new, helpful features that are stored securely in your browser's local memory.</p>
@@ -828,7 +839,7 @@ function showAboutModal() {
                 <strong>Privacy Notice:</strong> This extension stores all your notes, goals, and data locally in your browser (using localStorage) and does not collect, transmit, or share any personal data with external servers.
             </p>
             <p style="font-size: 0.8rem; color: #999;">
-                &copy; James Theakston 2025
+                &copy; James Theakston 2026
             </p>
         </div>
         <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
@@ -1322,8 +1333,6 @@ function showReviewModal() {
     };
 
     document.getElementById('cc-review-later-btn').addEventListener('click', dismiss);
-
-
     document.getElementById('cc-review-dismiss-btn').addEventListener('click', dismiss);
 
     backdrop.addEventListener('click', (event) => {
@@ -1334,17 +1343,13 @@ function showReviewModal() {
 }
 
 function checkAndShowModals() {
-
     if (localStorage.getItem(WELCOME_SHOWN_KEY) !== 'true') {
         showWelcomeModal(() => {
-
             if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
                 showReviewModal();
             }
         });
-    }
-
-    else if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
+    } else if (localStorage.getItem(REVIEW_SHOWN_KEY) !== 'true') {
         showReviewModal();
     }
 }
@@ -1392,7 +1397,7 @@ function injectContactLink() {
                 font-size: 0.85rem;
                 font-family: inherit;
             ">
-                <a href="mailto:hi.opticflowstudios@gmail.com" style="color: ${PRIMARY_BLUE}; text-decoration: none; font-weight: 500; transition: color 0.2s;">
+                <a href="mailto:jamesttheakston2@gmail.com" style="color: ${PRIMARY_BLUE}; text-decoration: none; font-weight: 500; transition: color 0.2s;">
                     Contact ClassCharts Improver Extension
                 </a>
             </div>
@@ -1433,13 +1438,12 @@ function injectCodeWarning() {
 }
 
 function injectMessagesPlaceholderContent() {
-    const placeholderDiv = document.querySelector('.jss53');
+    const placeholderDiv = Array.from(document.querySelectorAll('div')).find(el => 
+        el.textContent.trim() === 'Please select a thread on the left side to view the messages'
+    );
     const injectedClass = 'cc-improver-messages-guide';
 
-    if (placeholderDiv &&
-        placeholderDiv.textContent.includes('Please select a thread') &&
-        !placeholderDiv.classList.contains(injectedClass)
-    ) {
+    if (placeholderDiv && !placeholderDiv.classList.contains(injectedClass)) {
         placeholderDiv.classList.add(injectedClass);
         placeholderDiv.textContent = 'Select a teacher on the left side to view the messages you have exchanged.';
 
@@ -1543,24 +1547,19 @@ function injectRefreshTweaksButton() {
 
     if (myCodeButton && !document.querySelector('.' + injectedClass)) {
         const refreshButton = myCodeButton.cloneNode(true);
-
         refreshButton.classList.add(injectedClass);
-
         const label = refreshButton.querySelector('.MuiButton-label');
         if (label) {
             label.textContent = 'Refresh Tweaks';
         }
-
         refreshButton.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
             showRefreshTweaksModal();
         });
-
         myCodeButton.insertAdjacentElement('beforebegin', refreshButton);
     }
 }
-
 
 function initObserver() {
     let attempts = 0;
@@ -1580,7 +1579,6 @@ function initObserver() {
 
         if (!menuInjected) {
             if (createMenuItem()) {
-
                 checkAndShowModals();
             }
         }
@@ -1601,5 +1599,4 @@ function initObserver() {
 
 injectLoginAlert();
 setupKeyComboListener();
-console.warn("ClassCharts Improver is active. This extension modifies the site's default behavior and appearance. For more details and troubleshooting information, press Ctrl+D (Cmd+D on Mac) to open the developer info panel.");
 initObserver();
