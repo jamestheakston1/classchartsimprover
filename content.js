@@ -177,21 +177,6 @@ function applyImprovedUI(enabled) {
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 white-space: nowrap;
             }
-
-            @keyframes rainbow-text {
-                0% { color: #ff0000; }
-                17% { color: #ff8800; }
-                33% { color: #ffff00; }
-                50% { color: #00ff00; }
-                67% { color: #0000ff; }
-                84% { color: #8800ff; }
-                100% { color: #ff0000; }
-            }
-
-            #cc-improver-settings-hub-menu-item .MuiListItemText-primary {
-                animation: rainbow-text 5s infinite linear;
-                font-weight: bold !important;
-            }
         `;
         document.head.appendChild(style);
     } else {
@@ -210,14 +195,11 @@ function applyHomeworkRedesign() {
         const style = document.createElement('style');
         style.id = 'cc-homework-redesign-styles';
         style.textContent = `
-            /* --- MAIN PAGE LAYOUT --- */
             .homework-page {
                 background-color: #f8fafc !important;
                 padding: 32px !important;
             }
 
-            /* --- META BADGES (Top Row Redesign) --- */
-            /* Target any div containing 'meta-badge' to avoid JSS number issues */
             div[class*="meta-badge"] {
                 background-color: white !important;
                 border-radius: 12px !important;
@@ -240,7 +222,6 @@ function applyHomeworkRedesign() {
                 transform: translateY(-2px) !important;
             }
 
-            /* The Number inside the badge */
             div[class*="meta-badge"] b {
                 font-size: 2.5rem !important;
                 line-height: 1 !important;
@@ -250,7 +231,6 @@ function applyHomeworkRedesign() {
                 font-weight: 800 !important;
             }
 
-            /* The Text inside the badge */
             div[class*="meta-badge"] span {
                 font-size: 0.85rem !important;
                 text-transform: uppercase !important;
@@ -259,12 +239,10 @@ function applyHomeworkRedesign() {
                 color: #64748b !important;
             }
 
-            /* Add colored accents based on type */
             .meta-badge-tasks-due { border-left: 5px solid ${PRIMARY_BLUE} !important; }
             .meta-badge-tasks-completed { border-left: 5px solid ${POSITIVE_GREEN} !important; }
             .meta-badge-tasks-remaining { border-left: 5px solid #f44336 !important; }
             
-            /* The 'Requires Submission' specific styling */
             .meta-badge-requires-submission {
                 background-color: white !important;
                 border-left: 5px solid #00BCD4 !important;
@@ -272,7 +250,6 @@ function applyHomeworkRedesign() {
                 flex-direction: row !important;
             }
             
-            /* Hide the ugly checkbox background in meta badge */
             .meta-badge-requires-submission .MuiIconButton-root {
                 padding: 12px !important;
                 margin-right: 10px !important;
@@ -281,7 +258,6 @@ function applyHomeworkRedesign() {
                 color: #006064 !important;
             }
 
-            /* --- HOMEWORK GRID --- */
             .homework-page > div:nth-child(2) {
                 display: grid !important;
                 grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
@@ -289,8 +265,6 @@ function applyHomeworkRedesign() {
                 margin-bottom: 40px !important;
             }
             
-            /* --- HOMEWORK DETAILS MODAL REDESIGN --- */
-            /* This targets the modal container */
             .MuiDialog-paper {
                 border-radius: 16px !important;
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
@@ -301,8 +275,7 @@ function applyHomeworkRedesign() {
                 padding: 10px !important;
             }
 
-            /* Header Section */
-            .homework-details h4 { /* Title */
+            .homework-details h4 { 
                 font-size: 1.5rem !important;
                 font-weight: 800 !important;
                 color: #111827 !important;
@@ -310,7 +283,7 @@ function applyHomeworkRedesign() {
                 line-height: 1.3 !important;
             }
 
-            .homework-details h5 { /* Teacher/Subject */
+            .homework-details h5 { 
                 font-size: 0.95rem !important;
                 color: #6b7280 !important;
                 font-weight: 500 !important;
@@ -319,7 +292,6 @@ function applyHomeworkRedesign() {
                 margin-bottom: 20px !important;
             }
 
-            /* The 'To Do' / Status Badge in Modal */
             .homework-group-header-badge {
                 border-radius: 999px !important;
                 padding: 6px 16px !important;
@@ -332,7 +304,6 @@ function applyHomeworkRedesign() {
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
             }
 
-            /* Date Grid in Modal */
             .homework-details > div:nth-of-type(2) {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
@@ -358,7 +329,6 @@ function applyHomeworkRedesign() {
                 margin-bottom: 4px !important;
             }
 
-            /* Description Box */
             .homework-details p {
                 font-size: 1rem !important;
                 line-height: 1.6 !important;
@@ -366,7 +336,6 @@ function applyHomeworkRedesign() {
                 margin-bottom: 12px !important;
             }
             
-            /* Completed Checkbox container */
             .homework-details fieldset {
                 margin: 20px 0 !important;
                 padding: 15px !important;
@@ -380,7 +349,6 @@ function applyHomeworkRedesign() {
                 border-color: ${PRIMARY_BLUE} !important;
             }
 
-            /* Links Section */
             .homework-details ul a {
                 border: 1px solid #e2e8f0 !important;
                 border-radius: 8px !important;
@@ -394,7 +362,6 @@ function applyHomeworkRedesign() {
                 color: ${PRIMARY_BLUE} !important;
             }
 
-            /* --- CALENDAR/GENERAL FIXES --- */
             .calendar-header {
                 background: transparent !important;
                 padding: 12px 0 !important;
@@ -409,7 +376,6 @@ function applyHomeworkRedesign() {
                 padding: 12px !important;
             }
             
-            /* General Card Styles */
             .homework-card {
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 border: 1px solid #e2e8f0 !important;
@@ -561,7 +527,6 @@ function createMenuItem() {
 
     goalsItem.after(settingsHubItem);
     
-    // Configure badge inside settings item
     settingsHubItem.style.position = 'relative';
     settingsHubItem.style.overflow = 'visible';
 
