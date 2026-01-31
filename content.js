@@ -21,6 +21,8 @@ const POSITIVE_ICON_FILE = 'smile.svg';
 const MONITOR_ICON_FILE = 'monitor.svg';
 const PROFILE_IMAGE_DEFAULT_SRC_PATTERN = 'faces/';
 const CLASSCHARTS_DEFAULT_PHOTO_URL = 'https://195ec04504ea0272771e-7c2c6dacbab7a2b2d574b53c70c1fe31.ssl.cf3.rackcdn.com/29.67.5-52f0ea22/img/faces/default.png';
+const CONFETTI_IMAGE_URL = 'https://img.icons8.com/color/1200/confetti.jpg';
+
 const DEFAULT_MENU_MAPPING = {
     0: 'home.svg',
     1: 'share-2.svg',
@@ -1769,6 +1771,54 @@ function injectLoginAlert() {
     }
 }
 
+function injectDetentionCelebration() {
+    const detentionPage = document.querySelector('.detentions-page');
+    if (!detentionPage) return;
+
+    if (detentionPage.querySelector('.cc-improver-detention-success')) return;
+
+    const statusParagraphs = Array.from(detentionPage.querySelectorAll('p'));
+    const noDetentionTextCount = statusParagraphs.filter(p => p.textContent.trim() === 'No detentions for this status.').length;
+
+    if (noDetentionTextCount >= 3) {
+        Array.from(detentionPage.children).forEach(child => child.style.display = 'none');
+
+        const successHtml = `
+            <div class="cc-improver-detention-success" style="
+                text-align: center; 
+                padding: 60px 20px; 
+                animation: fadeIn 0.5s ease-out;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            ">
+                <img src="${CONFETTI_IMAGE_URL}" alt="Celebration" style="
+                    width: 150px; 
+                    height: auto; 
+                    margin-bottom: 24px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+                ">
+                <h2 style="
+                    color: ${POSITIVE_GREEN}; 
+                    font-weight: 800; 
+                    font-size: 1.5rem;
+                    margin: 0;
+                    line-height: 1.4;
+                ">You have no upcoming or past detentions!</h2>
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                </style>
+            </div>
+        `;
+        detentionPage.insertAdjacentHTML('beforeend', successHtml);
+    }
+}
+
 function showRefreshTweaksModal() {
     const bodyHtml = `
         <div style="font-size: 1rem; color: #333; line-height: 1.5; margin-bottom: 25px;">
@@ -1839,6 +1889,7 @@ function initObserver() {
         injectMessagesPlaceholderContent();
         injectAnnouncementsDescription();
         injectRefreshTweaksButton();
+        injectDetentionCelebration();
 
         if (attempts >= maxAttempts) {
             clearInterval(interval);
