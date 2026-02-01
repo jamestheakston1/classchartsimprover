@@ -6,8 +6,8 @@ Versions of ClassCharts Improver that are currently being supported with securit
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.6  | :white_check_mark: |
-| < 5.6   | :x:                |
+| 5.6.3  | :white_check_mark: |
+| < 5.6.3   | :x:                |
 
 ClassCharts Improver only supports the latest version. The extension is automatically updated by your browser.
 
